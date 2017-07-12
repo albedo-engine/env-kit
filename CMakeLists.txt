@@ -14,7 +14,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${BUILD_DIR})
 set(BIN_SOURCE_FILES main.cpp)
 
 include_directories(
-        ${CMAKE_SOURCE_DIR}/src
+        ${CMAKE_SOURCE_DIR}/include
 )
 
 add_subdirectory(src)
