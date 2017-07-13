@@ -24,10 +24,6 @@ class EnvProcessor
     void
     computeBRDFLUT();
 
-  public:
-    void
-    load(std::string pathToFile);
-
   private:
     float* data_;
 };
