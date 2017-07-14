@@ -1,10 +1,16 @@
 #pragma once
 
+#define _USE_MATH_DEFINES
+#include <cmath>
+
 #include <string>
 #include <stdexcept>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <third-party/stb_image.h>
+
+#include <math/vector.hpp>
+#include <data/cubemap.hpp>
 
 namespace albedo
 {
@@ -16,7 +22,7 @@ class EnvProcessor
 {
   public:
     void
-    computeDiffuseIS();
+    computeDiffuseIS(const data::Cubemap& cubemap, std::size_t nbSamples);
 
     void
     computeSpecularIS();

@@ -2,6 +2,7 @@
 
 #include <cstddef>
 
+#include <unordered_map>
 #include <vector>
 
 #include <math/vector.hpp>
@@ -18,12 +19,12 @@ namespace data
 
 enum CubemapFace
 {
-  LEFT = 0,
-  RIGHT,
-  FRONT,
-  BACK,
-  TOP,
-  BOTTOM
+  X = 0,
+  NEG_X,
+  Y,
+  NEG_Y,
+  Z,
+  NEG_Z
 };
 
 class Cubemap
@@ -31,9 +32,17 @@ class Cubemap
   public:
     Cubemap(std::vector<data::Image> facesData);
 
+    ~Cubemap();
+
   public:
     void
-    getPixel(std::size_t mipIdx, const math::Vector& direction);
+    getPixel(std::size_t mipIdx, const math::Vector& direction) const;
+
+    inline int
+    getSize() const
+    {
+      return mipmaps_[0][0].width;
+    }
 
   private:
     std::vector<std::vector<data::Image>> mipmaps_;

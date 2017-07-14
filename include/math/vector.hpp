@@ -16,6 +16,8 @@ namespace math {
 class Vector
 {
   public:
+    Vector();
+
     Vector(const std::initializer_list<float>& vec);
 
     Vector(float x, float y, float z);
@@ -26,6 +28,27 @@ class Vector
 
     float
     norm();
+
+    void
+    set(float x = 0.0f, float y = 0.0f, float z = 0.0f);
+
+    inline float
+    x() const
+    {
+      return data_[0];
+    }
+
+    inline float
+    y() const
+    {
+      return data_[1];
+    }
+
+    inline float
+    z() const
+    {
+      return data_[2];
+    }
 
     inline float
     get(std::size_t idx) const
@@ -44,8 +67,23 @@ class Vector
     const Vector
     operator*(float scalar) const;
 
+    Vector&
+    operator*=(float scalar);
+
+    const Vector
+    operator/(float scalar) const;
+
+    Vector&
+    operator/=(float scalar);
+
+    const Vector
+    operator^(const Vector& rhs) const;
+
     const Vector
     operator+(const Vector& rhs) const;
+
+    const Vector
+    operator+(float scalar) const;
 
     const Vector
     operator-(const Vector& rhs) const;
