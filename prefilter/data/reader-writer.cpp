@@ -18,16 +18,13 @@ std::shared_ptr<ReaderWriter> ReaderWriter::instance_ = nullptr;
 
 ReaderWriter::~ReaderWriter()
 {
-  for (auto& img : images_) stbi_image_free(img); //delete img;
+  for (auto& img : images_) delete[] img;
 }
 
 std::vector<float*>
 ReaderWriter::loadCubemap(char const* path, char const* ext,
                           int& width, int& nbComponents)
 {
-
-  stbi_set_flip_vertically_on_load(true);
-
   // Contains the the single mipmaps layer of the Cubemap.
   std::vector<float*> faces;
 
@@ -37,16 +34,21 @@ ReaderWriter::loadCubemap(char const* path, char const* ext,
     file = std::string(path)
            + "-"
            + std::string(data::Cubemap::TYPE_TO_STRING.at(i)) + "." + ext;
-    float* data = stbi_loadf(file.c_str(), &width, &width, &nbComponents, 0);
 
-    if (!data)
+    unsigned char* raw = stbi_load(file.c_str(),
+                                   &width, &width, &nbComponents, STBI_rgb);
+
+    if (!raw)
     {
       std::string exception = "EnvProcessor: Fail to load " + std::string(file);
       throw std::invalid_argument(exception);
     }
 
+    float* data = this->toFloat(raw, width * width, nbComponents);
     faces.push_back(data);
     images_.push_back(data);
+
+    stbi_image_free(raw);
   }
 
   return faces;
@@ -59,22 +61,54 @@ ReaderWriter::save(const data::Cubemap &cubemap,
   int size = cubemap.getSize();
   int nbComp = cubemap.getNbComp();
 
-  for (const auto& mip : cubemap.getMipmaps())
+  const auto& mips = cubemap.getMipmaps();
+  auto& mip = mips[0];
+
+  for (unsigned int i = 0; i < mip.size(); ++i)
   {
-    for (std::size_t i = 0; i < mip.size(); ++i)
+    // Creates the full location where to store the image.
+    std::string file = std::string(path) + "-";
+    file += data::Cubemap::TYPE_TO_STRING.at(i) + "." + ext;
+
+    // Converts back float data to unsigned char
+    unsigned char* img = this->toChar(mip[i], size * size, cubemap.getNbComp());
+
+    int ret = stbi_write_tga(file.c_str(), size, size, nbComp, img);
+    if (!ret)
     {
-      std::string file = std::string(path) + "-";
-      file += data::Cubemap::TYPE_TO_STRING.at(i) + "." + ext;
-      int ret = stbi_write_tga(file.c_str(), size, size, nbComp, mip[i]);
-      if (!ret)
-      {
-        std::string error = "ReaderWriter: An error occured while saving'";
-        error += path + std::string("'");
-        throw std::runtime_error(error);
-      }
+      std::string error = "ReaderWriter: An error occured while saving'";
+      error += path + std::string("'");
+      throw std::runtime_error(error);
     }
+    delete[] img;
   }
 
+}
+
+float*
+ReaderWriter::toFloat(const unsigned char *data, int size, int nbComp) const
+{
+  int nbValues = size * nbComp;
+
+  float* result = new float[nbValues];
+  for (std::size_t i = 0; i < nbValues; ++i)
+  {
+    result[i] = ((float)data[i]) / 255.0f;
+  }
+  return result;
+}
+
+unsigned char*
+ReaderWriter::toChar(const float *data, int size, int nbComp) const
+{
+  int nbValues = size * nbComp;
+
+  unsigned char* result = new unsigned char[nbValues];
+  for (std::size_t i = 0; i < nbValues; ++i)
+  {
+    result[i] = (unsigned char)(data[i] * 255.0f);
+  }
+  return result;
 }
 
 } // namespace data

@@ -29,15 +29,18 @@ enum CubemapFace
 class Cubemap
 {
   public:
-    static std::unordered_map<uint, std::string> TYPE_TO_STRING;
+    static const float FACE_UV_VEC[6][3][3];
+    static const std::unordered_map<uint, std::string> TYPE_TO_STRING;
 
   public:
     Cubemap(std::vector<float*> facesData, int width, int nbComponents);
 
   public:
+    uint
+    getFaceIndex(const math::Vector& direction);
+
     void
-    getPixel(std::size_t mipIdx,
-             const math::Vector& direction,
+    getPixel(std::size_t mipIdx, const math::Vector& direction,
              float& r, float& g, float& b) const;
 
     inline int
@@ -49,11 +52,11 @@ class Cubemap
     inline int
     getNbMipmaps() const { return mipmaps_.size(); }
 
-    inline std::vector<std::vector<float*>>
+    inline const std::vector<std::vector<float*>>
     getMipmaps() const { return mipmaps_; }
 
-    inline std::vector<float*>&
-    getMip(std::size_t i) { return mipmaps_[i]; }
+    inline const std::vector<float*>&
+    getMip(std::size_t i) const { return mipmaps_[i]; }
 
   private:
     void

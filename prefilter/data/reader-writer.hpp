@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <vector>
 #include <memory>
+#include <iostream>
 
 #include <data/cubemap.hpp>
 
@@ -36,6 +37,13 @@ class ReaderWriter
 
     void
     save(const data::Cubemap& cubemap, const char* path, const char* ext) const;
+
+  private:
+    float*
+    toFloat(const unsigned char* data, int size, int nbComp) const;
+
+    unsigned char*
+    toChar(const float* data, int size, int nbComp) const;
 
   private:
     static std::shared_ptr<ReaderWriter> instance_;

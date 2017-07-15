@@ -18,7 +18,7 @@ namespace tools
 class EnvProcessor
 {
   public:
-    void
+    data::Cubemap
     computeDiffuseIS(const data::Cubemap& cubemap, std::size_t nbSamples);
 
     void

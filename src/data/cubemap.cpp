@@ -10,21 +10,75 @@ namespace tools
 namespace data
 {
 
-std::unordered_map<uint, std::string> Cubemap::TYPE_TO_STRING =
+const std::unordered_map<uint, std::string> Cubemap::TYPE_TO_STRING =
 {
-  { data::CubemapFace::X, "right" },
-  { data::CubemapFace::NEG_X, "left" },
-  { data::CubemapFace::Y, "top" },
-  { data::CubemapFace::NEG_Y, "bottom" },
-  { data::CubemapFace::Z, "front" },
-  { data::CubemapFace::NEG_Z, "back" }
+  { data::CubemapFace::X,     "right"   },
+  { data::CubemapFace::NEG_X, "left"    },
+  { data::CubemapFace::Y,     "front"   },
+  { data::CubemapFace::NEG_Y, "back"    },
+  { data::CubemapFace::Z,     "bottom"  },
+  { data::CubemapFace::NEG_Z,  "top"    }
 };
 
-Cubemap::Cubemap(std::vector<float*> facesData, int width, int nbComponents)
+///
+///    --> U    _____
+///   |        |     |
+///   v        | +Y  |
+///   V   _____|_____|_____ _____
+///      |     |     |     |     |
+///      | -X  | +Z  | +X  | -Z  |
+///      |_____|_____|_____|_____|
+///            |     |
+///            | -Y  |
+///            |_____|
+///
+const float Cubemap::FACE_UV_VEC[6][3][3] =
+{
+  { // +x face
+    {  0.0f,  0.0f, -1.0f }, // u -> -z
+    {  0.0f, -1.0f,  0.0f }, // v -> -y
+    {  1.0f,  0.0f,  0.0f }, // +x face
+  },
+  { // -x face
+    {  0.0f,  0.0f,  1.0f }, // u -> +z
+    {  0.0f, -1.0f,  0.0f }, // v -> -y
+    { -1.0f,  0.0f,  0.0f }, // -x face
+  },
+  { // +y face
+    {  1.0f,  0.0f,  0.0f }, // u -> +x
+    {  0.0f,  0.0f,  1.0f }, // v -> +z
+    {  0.0f,  1.0f,  0.0f }, // +y face
+  },
+  { // -y face
+    {  1.0f,  0.0f,  0.0f }, // u -> +x
+    {  0.0f,  0.0f, -1.0f }, // v -> -z
+    {  0.0f, -1.0f,  0.0f }, // -y face
+  },
+  { // +z face
+    {  1.0f,  0.0f,  0.0f }, // u -> +x
+    {  0.0f, -1.0f,  0.0f }, // v -> -y
+    {  0.0f,  0.0f,  1.0f }, // +z face
+  },
+  { // -z face
+    { -1.0f,  0.0f,  0.0f }, // u -> -x
+    {  0.0f, -1.0f,  0.0f }, // v -> -y
+    {  0.0f,  0.0f, -1.0f }, // -z face
+  }
+};
+
+
+Cubemap::Cubemap(std::vector<float*> facesData,
+                 int width, int nbComponents)
         : mipmaps_({facesData})
         , width_{width}
         , nbComponents_{nbComponents}
 { }
+
+uint
+Cubemap::getFaceIndex(const math::Vector& direction)
+{
+
+}
 
 void
 Cubemap::getPixel(std::size_t mipIdx,
@@ -101,7 +155,7 @@ Cubemap::getFacePx(int mipLvl, int faceIdx,
     throw std::invalid_argument(error);
   }
 
-  float* data = mipmaps_[mipLvl][faceIdx];
+  const float* data = mipmaps_[mipLvl][faceIdx];
 
   int idx = x + y * width_;
   r = data[idx];
