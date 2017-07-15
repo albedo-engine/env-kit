@@ -44,14 +44,19 @@ EnvProcessor::computeDiffuseIS(const data::Cubemap& cubemap,
           // Integrates over the the normal axis
           for (float theta = 0.0f; theta < 0.5f * M_PI; theta += step)
           {
-            math::Vector fetch = right * (std::sin(theta) * std::cos(phi) *
-                                  right.x()) +
+            math::Vector fetch = right * (std::sin(theta) * std::cos(phi)) +
                                  up * (std::sin(theta) * std::sin(phi) *
                                    right.x()) +
                                  normal * std::cos(theta);
 
-            cubemap.getPixel(0, fetch);
+            float cR = 0.0f;
+            float cG = 0.0f;
+            float cB = 0.0f;
+            cubemap.getPixel(0, fetch, cR, cG, cB);
 
+            r += cR * cos(theta) * sin(theta);
+            g += cG * cos(theta) * sin(theta);
+            b += cB * cos(theta) * sin(theta);
           }
         }
       }

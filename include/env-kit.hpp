@@ -6,9 +6,6 @@
 #include <string>
 #include <stdexcept>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include <third-party/stb_image.h>
-
 #include <math/vector.hpp>
 #include <data/cubemap.hpp>
 

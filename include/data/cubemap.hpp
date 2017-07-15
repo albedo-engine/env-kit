@@ -6,7 +6,6 @@
 #include <vector>
 
 #include <math/vector.hpp>
-#include <data/image.hpp>
 
 namespace albedo
 {
@@ -30,22 +29,41 @@ enum CubemapFace
 class Cubemap
 {
   public:
-    Cubemap(std::vector<data::Image> facesData);
+    static std::unordered_map<uint, std::string> TYPE_TO_STRING;
 
-    ~Cubemap();
+  public:
+    Cubemap(std::vector<float*> facesData, int width, int nbComponents);
 
   public:
     void
-    getPixel(std::size_t mipIdx, const math::Vector& direction) const;
+    getPixel(std::size_t mipIdx,
+             const math::Vector& direction,
+             float& r, float& g, float& b) const;
 
     inline int
-    getSize() const
-    {
-      return mipmaps_[0][0].width;
-    }
+    getSize() const { return width_; }
+
+    inline int
+    getNbComp() const { return nbComponents_; }
+
+    inline int
+    getNbMipmaps() const { return mipmaps_.size(); }
+
+    inline std::vector<std::vector<float*>>
+    getMipmaps() const { return mipmaps_; }
+
+    inline std::vector<float*>&
+    getMip(std::size_t i) { return mipmaps_[i]; }
 
   private:
-    std::vector<std::vector<data::Image>> mipmaps_;
+    void
+    getFacePx(int mipLvl, int faceIdx,
+              int x, int y, float& r, float& g, float& b) const;
+
+  private:
+    std::vector<std::vector<float*>>  mipmaps_;
+    int                               width_;
+    int                               nbComponents_;
 
 };
 

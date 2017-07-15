@@ -11,15 +11,14 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BUILD_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${BUILD_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${BUILD_DIR})
 
-set(BIN_SOURCE_FILES main.cpp)
+set(BIN_SOURCE_FILES prefilter/main.cpp)
 
 include_directories(
         ${CMAKE_SOURCE_DIR}/include
 )
 
 add_subdirectory(src)
+add_subdirectory(prefilter)
+add_subdirectory(tests)
 
-# Adds binary executable
-add_executable(env-kit ${BIN_SOURCE_FILES})
-target_link_libraries(env-kit albedo_envtools)
 

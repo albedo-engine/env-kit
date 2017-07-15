@@ -2557,7 +2557,7 @@ static void stbi__idct_simd(stbi_uc *out, int out_stride, short data[64])
       // 8 bytes to each scan line!
 
       // 8x8 8-bit transpose pass 1
-      dct_trn8_8(p0, p1);
+      dct_trn8_8(p0,
       dct_trn8_8(p2, p3);
       dct_trn8_8(p4, p5);
       dct_trn8_8(p6, p7);

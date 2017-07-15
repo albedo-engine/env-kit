@@ -43,6 +43,16 @@ Vector::norm()
   return norm_;
 }
 
+bool
+Vector::null() const
+{
+  for (const auto& x : data_)
+  {
+    if (x < - 0.0001 || x >= 0.0001) return false;
+  }
+  return true;
+}
+
 void
 Vector::set(float x, float y, float z)
 {
