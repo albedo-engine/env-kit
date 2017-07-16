@@ -43,37 +43,31 @@ const std::unordered_map<uint, math::Vector> Cubemap::FACE_TO_VEC =
 ///            | -Y  |
 ///            |_____|
 ///
-const float Cubemap::FACE_UV_VEC[6][3][3] =
+const math::Vector Cubemap::FACE_UV_VEC[6][2] =
 {
   { // +x face
-    {  0.0f,  0.0f, -1.0f }, // u -> -z
-    {  0.0f, -1.0f,  0.0f }, // v -> -y
-    {  1.0f,  0.0f,  0.0f }, // +x face
+    math::Vector({0.0f, 1.0f, 0.0f}),
+    math::Vector({0.0f, 0.0f, -1.0f})
   },
   { // -x face
-    {  0.0f,  0.0f,  1.0f }, // u -> +z
-    {  0.0f, -1.0f,  0.0f }, // v -> -y
-    { -1.0f,  0.0f,  0.0f }, // -x face
+    math::Vector({0.0f, -1.0f, 0.0f}),
+    math::Vector({0.0f, 0.0f, -1.0f})
   },
   { // +y face
-    {  1.0f,  0.0f,  0.0f }, // u -> +x
-    {  0.0f,  0.0f,  1.0f }, // v -> +z
-    {  0.0f,  1.0f,  0.0f }, // +y face
+    math::Vector({-1.0f, 0.0f, 0.0f}),
+    math::Vector({0.0f, 0.0f, -1.0f})
   },
   { // -y face
-    {  1.0f,  0.0f,  0.0f }, // u -> +x
-    {  0.0f,  0.0f, -1.0f }, // v -> -z
-    {  0.0f, -1.0f,  0.0f }, // -y face
+    math::Vector({1.0f, 0.0f, 0.0f}),
+    math::Vector({0.0f, 0.0f, -1.0f})
   },
   { // +z face
-    {  1.0f,  0.0f,  0.0f }, // u -> +x
-    {  0.0f, -1.0f,  0.0f }, // v -> -y
-    {  0.0f,  0.0f,  1.0f }, // +z face
+    math::Vector({1.0f, 0.0f, 0.0f}),
+    math::Vector({0.0f, -1.0f, 0.0f})
   },
   { // -z face
-    { -1.0f,  0.0f,  0.0f }, // u -> -x
-    {  0.0f, -1.0f,  0.0f }, // v -> -y
-    {  0.0f,  0.0f, -1.0f }, // -z face
+    math::Vector({1.0f, 0.0f, 0.0f}),
+    math::Vector({0.0f, 1.0f, 0.0f})
   }
 };
 
@@ -84,12 +78,6 @@ Cubemap::Cubemap(std::vector<float*> facesData,
         , width_{width}
         , nbComponents_{nbComponents}
 { }
-
-uint
-Cubemap::getFaceIndex(const math::Vector& direction)
-{
-
-}
 
 void
 Cubemap::getPixel(uint8_t mipIdx,
@@ -111,7 +99,7 @@ Cubemap::getPixel(uint8_t mipIdx,
   };
   const float max = fmaxf(fmaxf(absVec[0], absVec[1]), absVec[2]);
 
-  /*uint8_t faceIdx = 0;
+  uint8_t faceIdx = 0;
   if (max == absVec[0])
   {
     faceIdx = (dir[0] >= 0.0f) ? CubemapFace::X : CubemapFace::NEG_X;
@@ -123,54 +111,11 @@ Cubemap::getPixel(uint8_t mipIdx,
   else if (max == absVec[2])
   {
     faceIdx = (dir[2] >= 0.0f) ? CubemapFace::Z : CubemapFace::NEG_Z;
-  }*/
+  }
 
-  uint8_t faceIdx = 0;
   math::Vector normalized = dir / max;
-  float u = 0.0f;
-  float v = 0.0f;
-  // +x face
-  if (max == absVec[0] && dir[0] >= 0.0f)
-  {
-    u = normalized[1]; // u -> +y
-    v = - normalized[2]; // v -> -z
-    faceIdx = 0;
-  }
-  // -x face
-  else if (max == absVec[0] && dir[0] < 0.0f)
-  {
-    u = - normalized[1]; // u -> -y
-    v = - normalized[2]; // v -> -z
-    faceIdx = 1;
-  }
-  // +y face
-  else if (max == absVec[1] && dir[1] >= 0.0f)
-  {
-    u = - normalized[0]; // u -> -x
-    v = - normalized[2]; // v -> -z
-    faceIdx = 2;
-  }
-  // -y face
-  else if (max == absVec[1] && dir[1] < 0.0f)
-  {
-    u = normalized[0]; // u -> +x
-    v = - normalized[2]; // v -> -z
-    faceIdx = 3;
-  }
-  // +z face
-  else if (max == absVec[2] && dir[2] >= 0.0f)
-  {
-    u = normalized[0]; // u -> +x
-    v = - normalized[1]; // v -> -y
-    faceIdx = 4;
-  }
-  // +z face
-  else if (max == absVec[2] && dir[2] < 0.0f)
-  {
-    u = normalized[0]; // u -> +x
-    v = normalized[1]; // v -> +y
-    faceIdx = 5;
-  }
+  float u = FACE_UV_VEC[faceIdx][0] * normalized;
+  float v = FACE_UV_VEC[faceIdx][1] * normalized;
 
   u = (u + 1.0f) * 0.5f;
   v = (v + 1.0f) * 0.5f;

@@ -29,7 +29,7 @@ enum CubemapFace
 class Cubemap
 {
   public:
-    static const float FACE_UV_VEC[6][3][3];
+    static const math::Vector FACE_UV_VEC[6][2];
     static const std::unordered_map<uint, math::Vector> FACE_TO_VEC;
     static const std::unordered_map<uint, std::string>  TYPE_TO_STRING;
 
@@ -37,9 +37,6 @@ class Cubemap
     Cubemap(std::vector<float*> facesData, int width, int nbComponents);
 
   public:
-    uint
-    getFaceIndex(const math::Vector& direction);
-
     void
     getPixel(uint8_t mipIdx, const math::Vector& direction,
              float& r, float& g, float& b) const;
