@@ -39,38 +39,22 @@ EnvProcessor::computeDiffuseIS(const data::Cubemap& cubemap,
         g = 0.0f;
         b = 0.0f;
 
-        math::Vector up(0.0f, 1.0f, 0.0f);
-        //math::Vector faceVec = (data::Cubemap::FACE_TO_VEC.at(f) * halfSize);
-        // DEBUG
         math::Vector normal;
-        if (f == 0)
+        if (f == 0 || f == 1)
         {
-          normal = math::Vector(halfSize, u, v);
+          normal = math::Vector((f == 0) ? halfSize : - halfSize, u, v);
         }
-        else if (f == 1)
+        else if (f == 2 || f == 3)
         {
-          normal = math::Vector(- halfSize, u, v);
+          normal = math::Vector(u, (f == 2) ? halfSize : - halfSize, v);
         }
-        else if (f == 2)
+        else if (f == 4 || f == 5)
         {
-          normal = math::Vector(u, halfSize, v);
+          normal = math::Vector(u, v, (f == 4) ? halfSize : - halfSize);
         }
-        else if (f == 3)
-        {
-          normal = math::Vector(u, - halfSize, v);
-        }
-        else if (f == 4)
-        {
-          normal = math::Vector(u, v, halfSize);
-        }
-        else if (f == 5)
-        {
-          normal = math::Vector(u, v, - halfSize);
-        }
-        //normal.set(x, y, z);
         normal.normalize();
-        // END DEBUG
 
+        math::Vector up(0.0f, 1.0f, 0.0f);
         math::Vector right = up ^ normal;
         up = normal ^ right;
 
@@ -102,11 +86,11 @@ EnvProcessor::computeDiffuseIS(const data::Cubemap& cubemap,
         b = M_PI * b * (1.0f / nrSamples);*/
 
         // DEBUG
-        cubemap.getPixel(0, normal, r, g, b);
+        int px = 0;
+        int py = 0;
+        cubemap.getPixel(0, normal, r, g, b, px, py);
         // END DEBUG
 
-        int px = u + halfSize;
-        int py = v + halfSize;
         int idx = (px + py * size) * 3;
         faces[f][idx] = r;
         faces[f][idx + 1] = g;

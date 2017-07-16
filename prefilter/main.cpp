@@ -17,7 +17,7 @@ int main(int argc, const char** argv)
   int width = 0;
   int nbComp = 0;
   std::vector<float*> faces = readerWriter
-    ->loadCubemap("../assets/small/desert", "tga", width, nbComp);
+    ->loadCubemap("../assets/desert", "tga", width, nbComp);
 
   albedo::tools::data::Cubemap envCubemap(faces, width, nbComp);
 

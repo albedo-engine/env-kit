@@ -80,8 +80,8 @@ Cubemap::Cubemap(std::vector<float*> facesData,
 { }
 
 void
-Cubemap::getPixel(uint8_t mipIdx,
-                  const math::Vector& dir, float& r, float& g, float& b) const
+Cubemap::getPixel(uint8_t mipIdx, const math::Vector& dir,
+                  float& r, float& g, float& b, int& x, int& y) const
 {
 
   if (mipIdx < 0 || mipIdx >= mipmaps_.size())
@@ -120,17 +120,8 @@ Cubemap::getPixel(uint8_t mipIdx,
   u = (u + 1.0f) * 0.5f;
   v = (v + 1.0f) * 0.5f;
 
-  getFacePx(mipIdx, faceIdx, u, v, r, g, b);
-
-}
-
-inline void
-Cubemap::getFacePx(uint8_t mipIdx, int faceIdx,
-                   float u, float v, float& r, float& g, float&b) const
-{
-
-  int x = (int)(u * (float)width_);
-  int y = (int)(v * (float)width_);
+  x = (int)(u * ((float)width_ + 1));
+  y = (int)(v * ((float)width_ + 1));
 
   x = (x >= width_) ? width_ - 1 : x;
   x = (x < 0) ? 0 : x;
@@ -144,6 +135,7 @@ Cubemap::getFacePx(uint8_t mipIdx, int faceIdx,
   r = data[idx];
   g = data[idx + 1];
   b = data[idx + 2];
+
 }
 
 } // namespace data

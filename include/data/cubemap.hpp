@@ -39,7 +39,7 @@ class Cubemap
   public:
     void
     getPixel(uint8_t mipIdx, const math::Vector& direction,
-             float& r, float& g, float& b) const;
+             float& r, float& g, float& b, int& x, int& y) const;
 
     inline int
     getSize() const { return width_; }
@@ -55,11 +55,6 @@ class Cubemap
 
     inline const std::vector<float*>&
     getMip(std::size_t i) const { return mipmaps_[i]; }
-
-  private:
-    void
-    getFacePx(uint8_t mipIdx, int faceIdx,
-              float u, float v, float& r, float& g, float& b) const;
 
   private:
     std::vector<std::vector<float*>>  mipmaps_;
