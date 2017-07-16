@@ -22,13 +22,13 @@ int main(int argc, const char** argv)
   albedo::tools::data::Cubemap envCubemap(faces, width, nbComp);
 
   auto tStart = Time::now();
-  processor.computeDiffuseIS(envCubemap, 10);
+  auto irradianceCubemap = processor.computeDiffuseIS(envCubemap, 10);
   auto tEnd = Time::now();
 
   fsec fs = tEnd - tStart;
   std::cout << "duration: " << fs.count() << " seconds.";
 
-  readerWriter->save(envCubemap, "toto", "tga");
+  readerWriter->save(irradianceCubemap, "toto", "tga");
 
   return 0;
 }

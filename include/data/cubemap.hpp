@@ -30,7 +30,8 @@ class Cubemap
 {
   public:
     static const float FACE_UV_VEC[6][3][3];
-    static const std::unordered_map<uint, std::string> TYPE_TO_STRING;
+    static const std::unordered_map<uint, math::Vector> FACE_TO_VEC;
+    static const std::unordered_map<uint, std::string>  TYPE_TO_STRING;
 
   public:
     Cubemap(std::vector<float*> facesData, int width, int nbComponents);
@@ -40,7 +41,7 @@ class Cubemap
     getFaceIndex(const math::Vector& direction);
 
     void
-    getPixel(std::size_t mipIdx, const math::Vector& direction,
+    getPixel(uint8_t mipIdx, const math::Vector& direction,
              float& r, float& g, float& b) const;
 
     inline int
@@ -60,8 +61,8 @@ class Cubemap
 
   private:
     void
-    getFacePx(int mipLvl, int faceIdx,
-              int x, int y, float& r, float& g, float& b) const;
+    getFacePx(uint8_t mipIdx, int faceIdx,
+              float u, float v, float& r, float& g, float& b) const;
 
   private:
     std::vector<std::vector<float*>>  mipmaps_;

@@ -14,11 +14,22 @@ const std::unordered_map<uint, std::string> Cubemap::TYPE_TO_STRING =
 {
   { data::CubemapFace::X,     "right"   },
   { data::CubemapFace::NEG_X, "left"    },
-  { data::CubemapFace::Y,     "front"   },
-  { data::CubemapFace::NEG_Y, "back"    },
-  { data::CubemapFace::Z,     "bottom"  },
-  { data::CubemapFace::NEG_Z,  "top"    }
+  { data::CubemapFace::Y,     "top"   },
+  { data::CubemapFace::NEG_Y, "bottom"    },
+  { data::CubemapFace::Z,     "front"  },
+  { data::CubemapFace::NEG_Z,  "back"    }
 };
+
+const std::unordered_map<uint, math::Vector> Cubemap::FACE_TO_VEC =
+{
+  { 0, math::Vector({1.0f, 0.0f, 0.0f})   },
+  { 1, math::Vector({- 1.0f, 0.0f, 0.0f}) },
+  { 2, math::Vector({0.0f, 1.0f, 0.0f})   },
+  { 3, math::Vector({0.0f, - 1.0f, 0.0f}) },
+  { 4, math::Vector({0.0f, 0.0f, 1.0f})   },
+  { 5, math::Vector({0.0f, 0.0f, - 1.0f}) },
+};
+
 
 ///
 ///    --> U    _____
@@ -81,9 +92,8 @@ Cubemap::getFaceIndex(const math::Vector& direction)
 }
 
 void
-Cubemap::getPixel(std::size_t mipIdx,
-                  const math::Vector& direction,
-                  float& r, float& g, float& b) const
+Cubemap::getPixel(uint8_t mipIdx,
+                  const math::Vector& dir, float& r, float& g, float& b) const
 {
 
   if (mipIdx < 0 || mipIdx >= mipmaps_.size())
@@ -91,73 +101,101 @@ Cubemap::getPixel(std::size_t mipIdx,
     throw std::invalid_argument("Cubemap: Invalid mipmap index.");
   }
 
-  if (direction.null()) return;
+  if (dir.null()) return;
 
-  const auto& maps = mipmaps_[mipIdx];
-
-  std::size_t max = 0;
-  float maxVal = 0.0f;
-  // Gets sample face
-  for (std::size_t i = 0; i < 3; ++i)
+  const float absVec[3] =
   {
-    float val = std::abs(direction[i]);
-    if (val > maxVal)
-    {
-      max = i;
-      maxVal = val;
-    }
-  }
-  math::Vector normalized = direction / maxVal;
+    fabsf(dir[0]),
+    fabsf(dir[1]),
+    fabsf(dir[2]),
+  };
+  const float max = fmaxf(fmaxf(absVec[0], absVec[1]), absVec[2]);
 
-  std::size_t faceIdx = max * 2 + ((direction[max] < 0.0) ? 1 : 0);
-
-  normalized = (normalized * 0.5f) + 0.5f;
-
-  // TODO: Gets the two remaining components serving
-  // TODO: to fetch in the target texture.
-
-  float u = 0;
-  float v = 0;
-  if (max == 0)
+  /*uint8_t faceIdx = 0;
+  if (max == absVec[0])
   {
-    u = normalized.y();
-    v = normalized.z();
+    faceIdx = (dir[0] >= 0.0f) ? CubemapFace::X : CubemapFace::NEG_X;
   }
-  else if (max == 1)
+  else if (max == absVec[1])
   {
-    u = normalized.x();
-    v = normalized.z();
+    faceIdx = (dir[1] >= 0.0f) ? CubemapFace::Y : CubemapFace::NEG_Y;
   }
-  else
+  else if (max == absVec[2])
   {
-    u = normalized.y();
-    v = normalized.z();
+    faceIdx = (dir[2] >= 0.0f) ? CubemapFace::Z : CubemapFace::NEG_Z;
+  }*/
+
+  uint8_t faceIdx = 0;
+  math::Vector normalized = dir / max;
+  float u = 0.0f;
+  float v = 0.0f;
+  // +x face
+  if (max == absVec[0] && dir[0] >= 0.0f)
+  {
+    u = normalized[1]; // u -> +y
+    v = - normalized[2]; // v -> -z
+    faceIdx = 0;
+  }
+  // -x face
+  else if (max == absVec[0] && dir[0] < 0.0f)
+  {
+    u = - normalized[1]; // u -> -y
+    v = - normalized[2]; // v -> -z
+    faceIdx = 1;
+  }
+  // +y face
+  else if (max == absVec[1] && dir[1] >= 0.0f)
+  {
+    u = - normalized[0]; // u -> -x
+    v = - normalized[2]; // v -> -z
+    faceIdx = 2;
+  }
+  // -y face
+  else if (max == absVec[1] && dir[1] < 0.0f)
+  {
+    u = normalized[0]; // u -> +x
+    v = - normalized[2]; // v -> -z
+    faceIdx = 3;
+  }
+  // +z face
+  else if (max == absVec[2] && dir[2] >= 0.0f)
+  {
+    u = normalized[0]; // u -> +x
+    v = - normalized[1]; // v -> -y
+    faceIdx = 4;
+  }
+  // +z face
+  else if (max == absVec[2] && dir[2] < 0.0f)
+  {
+    u = normalized[0]; // u -> +x
+    v = normalized[1]; // v -> +y
+    faceIdx = 5;
   }
 
-  getFacePx(
-    0,
-    faceIdx,
-    (int)(u * (float)(this->getSize() / 2)),
-    (int)(v * (float)(this->getSize() / 2)), r, g, b
-  );
+  u = (u + 1.0f) * 0.5f;
+  v = (v + 1.0f) * 0.5f;
+
+  getFacePx(mipIdx, faceIdx, u, v, r, g, b);
 
 }
 
 inline void
-Cubemap::getFacePx(int mipLvl, int faceIdx,
-                   int x, int y, float& r, float& g, float&b) const
+Cubemap::getFacePx(uint8_t mipIdx, int faceIdx,
+                   float u, float v, float& r, float& g, float&b) const
 {
-  if (x < 0 || x >= width_ || y < 0 || y >= width_)
-  {
-    std::string error = "Image: pixel (" + x;
-    error += ", " + y;
-    error += ") is not in the image";
-    throw std::invalid_argument(error);
-  }
 
-  const float* data = mipmaps_[mipLvl][faceIdx];
+  int x = (int)(u * (float)width_);
+  int y = (int)(v * (float)width_);
 
-  int idx = x + y * width_;
+  x = (x >= width_) ? width_ - 1 : x;
+  x = (x < 0) ? 0 : x;
+
+  y = (y >= width_) ? width_ - 1 : y;
+  y = (y < 0) ? 0 : y;
+
+  const float* data = mipmaps_[mipIdx][faceIdx];
+
+  int idx = (x + y * width_) * 3;
   r = data[idx];
   g = data[idx + 1];
   b = data[idx + 2];

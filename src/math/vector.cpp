@@ -107,9 +107,9 @@ Vector::operator/=(float scalar)
 const Vector
 Vector::operator^(const Vector& rhs) const
 {
-  float x = data_[1] * rhs[2] - data_[2] * rhs[1];
-  float y = data_[2] * rhs[0] - data_[0] * rhs[2];
-  float z = data_[0] * rhs[1] - data_[1] * rhs[0];
+  float x = (data_[1] * rhs[2]) - (data_[2] * rhs[1]);
+  float y = (data_[2] * rhs[0]) - (data_[0] * rhs[2]);
+  float z = (data_[0] * rhs[1]) - (data_[1] * rhs[0]);
 
   return Vector(x, y, z);
 }
