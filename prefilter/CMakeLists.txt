@@ -1,6 +1,6 @@
 add_subdirectory(data)
 
-list(APPEND ALBEDO_PREFILTER_SOURCES main.cpp)
+list(APPEND ALBEDO_PREFILTER_SOURCES main.cpp program-parser.cpp)
 
 # Adds binary executable
 add_executable(albedo-prefilter ${ALBEDO_PREFILTER_SOURCES})

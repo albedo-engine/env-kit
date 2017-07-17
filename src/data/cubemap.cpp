@@ -83,7 +83,6 @@ void
 Cubemap::getPixel(uint8_t mipIdx, const math::Vector& dir,
                   float& r, float& g, float& b, int& x, int& y) const
 {
-
   if (mipIdx < 0 || mipIdx >= mipmaps_.size())
   {
     throw std::invalid_argument("Cubemap: Invalid mipmap index.");
@@ -112,8 +111,8 @@ Cubemap::getPixel(uint8_t mipIdx, const math::Vector& dir,
   {
     faceIdx = (dir[2] >= 0.0f) ? CubemapFace::Z : CubemapFace::NEG_Z;
   }
-
   math::Vector normalized = dir / max;
+
   float u = FACE_UV_VEC[faceIdx][0] * normalized;
   float v = FACE_UV_VEC[faceIdx][1] * normalized;
 
@@ -135,7 +134,35 @@ Cubemap::getPixel(uint8_t mipIdx, const math::Vector& dir,
   r = data[idx];
   g = data[idx + 1];
   b = data[idx + 2];
+}
 
+void
+Cubemap::getFetchCoord(uint8_t faceIdx,
+                       const math::Vector& dir, int& x, int& y) const
+{
+  const float absVec[3] =
+  {
+    fabsf(dir[0]),
+    fabsf(dir[1]),
+    fabsf(dir[2]),
+  };
+  const float max = fmaxf(fmaxf(absVec[0], absVec[1]), absVec[2]);
+  math::Vector normalized = dir / max;
+
+  float u = FACE_UV_VEC[faceIdx][0] * normalized;
+  float v = FACE_UV_VEC[faceIdx][1] * normalized;
+
+  u = (u + 1.0f) * 0.5f;
+  v = (v + 1.0f) * 0.5f;
+
+  x = (int)(u * ((float)width_ + 1));
+  y = (int)(v * ((float)width_ + 1));
+
+  x = (x >= width_) ? width_ - 1 : x;
+  x = (x < 0) ? 0 : x;
+
+  y = (y >= width_) ? width_ - 1 : y;
+  y = (y < 0) ? 0 : y;
 }
 
 } // namespace data

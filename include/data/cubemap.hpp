@@ -41,6 +41,10 @@ class Cubemap
     getPixel(uint8_t mipIdx, const math::Vector& direction,
              float& r, float& g, float& b, int& x, int& y) const;
 
+    void
+    getFetchCoord(uint8_t faceIdx,
+                  const math::Vector& direction, int& x, int& y) const;
+
     inline int
     getSize() const { return width_; }
 
