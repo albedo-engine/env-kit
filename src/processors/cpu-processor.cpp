@@ -1,4 +1,4 @@
-#include <env-kit.hpp>
+#include <processors/cpu-processor.hpp>
 
 namespace albedo
 {
@@ -6,11 +6,11 @@ namespace albedo
 namespace tools
 {
 
-std::shared_ptr<EnvProcessor> EnvProcessor::instance_ = nullptr;
+namespace process
+{
 
 data::Cubemap
-EnvProcessor::computeDiffuseIS(const data::Cubemap& cubemap,
-                               std::uint16_t nbSamples)
+CPUProcessor::computeDiffuseIS(const data::Cubemap& cubemap, uint16_t nbSamples)
 {
   int size = cubemap.getSize();
   int halfSize = size / 2;
@@ -98,20 +98,21 @@ EnvProcessor::computeDiffuseIS(const data::Cubemap& cubemap,
   }
 
   return data::Cubemap(faces, size, nbComp);
-
 }
 
 void
-EnvProcessor::computeSpecularIS()
+CPUProcessor::computeSpecularIS()
 {
   throw "Not implemented.";
 }
 
 void
-EnvProcessor::computeBRDFLUT()
+CPUProcessor::computeBRDFLUT()
 {
   throw "Not implemented.";
 }
+
+} // process
 
 } // tools
 

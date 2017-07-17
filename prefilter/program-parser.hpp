@@ -19,6 +19,7 @@ class ProgramParser
     {
       std::string strValue;
       int         intValue;
+      bool        boolValue;
 
       Data() { }
       ~Data() { }
@@ -53,13 +54,15 @@ class ProgramParser
       return arguments_[key];
     }
 
-  private:
+    bool
+    helpRequested();
+
     void
-    checkRequiredOpt(const char* optKey, const char* message);
+    printHelp();
 
   private:
     void
-    printHelp();
+    checkRequiredOpt(const char* optKey, const char* message);
 
   private:
     static std::shared_ptr<ProgramParser>                     instance_;
@@ -67,10 +70,12 @@ class ProgramParser
     static const std::unordered_map<std::string, std::string> OPT_TO_KEY;
     static const std::unordered_map<std::string, std::string> OPT_TO_DESC;
     static const std::unordered_map<std::string, bool>        NUMERICAL_OPT;
+    static const std::unordered_map<std::string, bool>        FLAG_OPT;
 
   private:
     std::unordered_map<std::string, Data> arguments_;
     bool                                  noError_;
+    bool                                  helpArg_;
 };
 
 } // namespace tools
