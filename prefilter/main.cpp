@@ -13,7 +13,7 @@ int main(int argc, char** argv)
   if (!programData->parseArgs(argc, argv)) return 1;
 
   // Parses program arguments.
-  int nbSamples = programData->getArg("samples").intValue;
+  uint16_t nbSamples = (uint16_t)programData->getArg("samples").intValue;
   std::string inputPath = programData->getArg("src").strValue;
   std::string outputPath = programData->getArg("dst").strValue;
 
@@ -36,13 +36,13 @@ int main(int argc, char** argv)
   typedef std::chrono::duration<float> fsec;
 
   auto tStart = Time::now();
-  auto irradianceCubemap = processor->computeDiffuseIS(envCubemap, 10);
+  auto irradianceCubemap = processor->computeDiffuseIS(envCubemap, nbSamples);
   auto tEnd = Time::now();
 
   fsec fs = tEnd - tStart;
   std::cout << "duration: " << fs.count() << " seconds.";
 
-  readerWriter->save(irradianceCubemap, "toto", "tga");
+  readerWriter->save(irradianceCubemap, outputPath.c_str(), "tga");
 
   return 0;
 }

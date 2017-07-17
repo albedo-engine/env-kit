@@ -22,11 +22,12 @@ EnvProcessor::computeDiffuseIS(const data::Cubemap& cubemap,
     faces.push_back(new float[size * size * nbComp]);
   }
 
-  //float step = 0.025f;
-  //float step = 0.05f;
-  float step = (2.0f * M_PI) / (float)nbSamples;
+  static const float TWO_PI = (2.0f * M_PI);
+  static const float PI_2 = (0.5f * M_PI);
 
-  for (int f = 0; f < 6; ++f)
+  float step = TWO_PI / (float)nbSamples;
+
+  for (uint8_t f = 0; f < 6; ++f)
   {
     for (int u = -halfSize; u < halfSize; ++u)
     {
@@ -57,12 +58,14 @@ EnvProcessor::computeDiffuseIS(const data::Cubemap& cubemap,
 
         // Integrates over the the y axis
         float nrSamples = 0.0f;
-        for (float phi = 0.0f; phi < 2.0f * M_PI; phi += step)
+        for (float phi = 0.0f; phi < TWO_PI; phi += step)
         {
           // Integrates over the the normal axis
-          for (float theta = 0.0f; theta < 0.5f * M_PI; theta += step)
+          for (float theta = 0.0f; theta < PI_2; theta += step)
           {
-            math::Vector fetch = right * (std::sin(theta) * std::cos(phi)) + up * (std::sin(theta) * std::sin(phi)) + normal * std::cos(theta);
+            math::Vector fetch = right * (std::sin(theta) * std::cos(phi))
+                                 + up * (std::sin(theta) * std::sin(phi))
+                                 + normal * std::cos(theta);
 
             float cR = 0.0f;
             float cG = 0.0f;
@@ -81,12 +84,6 @@ EnvProcessor::computeDiffuseIS(const data::Cubemap& cubemap,
         r = M_PI * r * (1.0f / nrSamples);
         g = M_PI * g * (1.0f / nrSamples);
         b = M_PI * b * (1.0f / nrSamples);
-
-        // DEBUG
-        /*int px = 0;
-        int py = 0;
-        cubemap.getPixel(0, normal, r, g, b, px, py);*/
-        // END DEBUG
 
         int px = 0;
         int py = 0;
