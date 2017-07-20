@@ -34,13 +34,13 @@ const std::unordered_map<uint, math::Vector> Cubemap::FACE_TO_VEC =
 ///
 ///    --> U    _____
 ///   |        |     |
-///   v        | +Y  |
+///   v        | +Z  |
 ///   V   _____|_____|_____ _____
 ///      |     |     |     |     |
-///      | -X  | +Z  | +X  | -Z  |
+///      | -X  | -Y  | +X  | +Y  |
 ///      |_____|_____|_____|_____|
 ///            |     |
-///            | -Y  |
+///            | -Z  |
 ///            |_____|
 ///
 const math::Vector Cubemap::FACE_UV_VEC[6][2] =
@@ -71,12 +71,9 @@ const math::Vector Cubemap::FACE_UV_VEC[6][2] =
   }
 };
 
-
 Cubemap::Cubemap(std::vector<float*> facesData,
                  int width, int nbComponents)
-        : mipmaps_({facesData})
-        , width_{width}
-        , nbComponents_{nbComponents}
+        : Image({facesData}, width, width, nbComponents)
 { }
 
 void

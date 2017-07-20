@@ -42,7 +42,6 @@ int main(int argc, char** argv)
   else
     processor = std::make_shared<process::GPUProcessor>();
 
-
   int width = 0;
   int nbComp = 0;
   std::vector<float*> faces = readerWriter

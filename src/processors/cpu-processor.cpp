@@ -35,17 +35,11 @@ CPUProcessor::computeDiffuseIS(const data::Cubemap& cubemap, uint16_t nbSamples)
       {
         math::Vector normal;
         if (f == 0 || f == 1)
-        {
           normal = math::Vector((f == 0) ? halfSize : - halfSize, u, v);
-        }
         else if (f == 2 || f == 3)
-        {
           normal = math::Vector(u, (f == 2) ? halfSize : - halfSize, v);
-        }
         else if (f == 4 || f == 5)
-        {
           normal = math::Vector(u, v, (f == 4) ? halfSize : - halfSize);
-        }
         normal.normalize();
 
         math::Vector up(0.0f, 1.0f, 0.0f);
@@ -100,6 +94,13 @@ CPUProcessor::computeDiffuseIS(const data::Cubemap& cubemap, uint16_t nbSamples)
   return data::Cubemap(faces, size, nbComp);
 }
 
+data::Cubemap
+CPUProcessor::computeDiffuseIS(const data::Equirectangular &map,
+                                             uint16_t nbSamples)
+{
+  throw "Not implemented.";
+}
+
 void
 CPUProcessor::computeSpecularIS()
 {
@@ -110,6 +111,18 @@ void
 CPUProcessor::computeBRDFLUT()
 {
   throw "Not implemented.";
+}
+
+data::Cubemap
+CPUProcessor::toCubemap(const data::Equirectangular& map)
+{
+  throw "Not implemented yet.";
+}
+
+data::Equirectangular
+CPUProcessor::toEquirectangular(const data::Cubemap& map)
+{
+  throw "Not implemented yet.";
 }
 
 } // process
