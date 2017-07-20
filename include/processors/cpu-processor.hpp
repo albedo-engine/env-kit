@@ -18,11 +18,8 @@ class CPUProcessor : public AbstractProcessor
 
   public:
     data::Cubemap
-    computeDiffuseIS(const data::Cubemap& cubemap, uint16_t nbSamples) override;
-
-    data::Cubemap
-    computeDiffuseIS(const data::Equirectangular& map,
-                     uint16_t nbSamples) override;
+    computeDiffuseIS(const data::Cubemap& cubemap,
+                     uint16_t nbSamples, int writeSize) override;
 
     void
     computeSpecularIS() override;
@@ -31,7 +28,7 @@ class CPUProcessor : public AbstractProcessor
     computeBRDFLUT() override;
 
     data::Cubemap
-    toCubemap(const data::Equirectangular& map) override;
+    toCubemap(const data::Equirectangular& map, int size) override;
 
     data::Equirectangular
     toEquirectangular(const data::Cubemap& map) override;

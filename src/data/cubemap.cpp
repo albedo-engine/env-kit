@@ -97,17 +97,11 @@ Cubemap::getPixel(uint8_t mipIdx, const math::Vector& dir,
 
   uint8_t faceIdx = 0;
   if (max == absVec[0])
-  {
     faceIdx = (dir[0] >= 0.0f) ? CubemapFace::X : CubemapFace::NEG_X;
-  }
   else if (max == absVec[1])
-  {
     faceIdx = (dir[1] >= 0.0f) ? CubemapFace::Y : CubemapFace::NEG_Y;
-  }
   else if (max == absVec[2])
-  {
     faceIdx = (dir[2] >= 0.0f) ? CubemapFace::Z : CubemapFace::NEG_Z;
-  }
   math::Vector normalized = dir / max;
 
   float u = FACE_UV_VEC[faceIdx][0] * normalized;

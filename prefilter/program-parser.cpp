@@ -15,16 +15,31 @@ const std::unordered_map<std::string, std::string> ProgramParser::OPT_TO_KEY
   { "--src", "src" },
   { "-d", "dst" },
   { "--dst", "dst" },
+  { "-e", "ext" },
+  { "--ext", "ext" },
+  { "-t", "type" },
+  { "--type", "type" },
   { "-n", "samples" },
   { "--nb-samples", "samples" },
+  { "--output-size", "outsize" },
   { "--no-gpu", "nogpu" }
 };
 
 const std::unordered_map<std::string, std::string> ProgramParser::OPT_TO_DESC
 {
-  { "-s", "-s, --src <path>{precise the path of the input texture" },
-  { "-d", "-d, --dst <path>{precise the path of the outputs texture" },
-  { "-n", "-n, --nb-samples <N>{precise the number of samples to compute "
+  { "-s", "-s, --src <path>{defines the path of the input texture" },
+  { "-d", "-d, --dst <path>{defines the path of the outputs texture" },
+  { "",
+    "--ext <IMAGE_EXTENSION>{"
+    "precise the extension of image that is given in input.\nSupported: "
+    "TGA - HDR"
+  },
+  { "-t",
+    "-t, --type <IMAGE_TYPE>{"
+      "precise the type of image that is given in input.\nSupported: "
+      "EQPLANAR, CUBEMAP_MULTIFACES, CUBEMAP"
+  },
+  { "-n", "-n, --nb-samples <N>{definesthe number of samples to compute "
           "the irradiance map. Default: 125" }
 };
 
@@ -42,8 +57,9 @@ ProgramParser::ProgramParser()
               : noError_{true}
               , helpArg_{false}
 {
-  arguments_["samples"].intValue = 125;
-  arguments_["nogpu"].boolValue = false;
+  arguments_["samples"].intValue  = 125;
+  arguments_["nogpu"].boolValue   = false;
+  arguments_["outsize"].strValue  = "256x256";
 }
 
 bool
@@ -65,7 +81,7 @@ ProgramParser::parseArgs(int argc, char **argv)
       continue;
 
     // Checks if i-nth argument is a flag option
-    if (FLAG_OPT.count(optMapIt->second))
+    if (FLAG_OPT.count(optMapIt->second) != 0)
     {
       arguments_[optMapIt->second].boolValue = true;
       continue;
@@ -82,7 +98,7 @@ ProgramParser::parseArgs(int argc, char **argv)
     }
 
     std::string nextArg = std::string(argv[i + 1]);
-    if (NUMERICAL_OPT.count(optMapIt->second))
+    if (NUMERICAL_OPT.count(optMapIt->second) != 0)
     {
       if ((nextArg.find_first_not_of( "0123456789" ) != std::string::npos))
       {
@@ -97,8 +113,10 @@ ProgramParser::parseArgs(int argc, char **argv)
     arguments_[optMapIt->second].strValue = nextArg;
   }
 
-  checkRequiredOpt("src", "-s/-src [SOURCE]");
-  checkRequiredOpt("dst", "-d/-dst [DESTINATION]");
+  checkRequiredOpt("src", "-s/--src [SOURCE]");
+  checkRequiredOpt("dst", "-d/--dst [DESTINATION]");
+  checkRequiredOpt("type", "-t/--type [IMAGE_TYPE]");
+  checkRequiredOpt("ext", "--ext [IMAGE_EXTENSION]");
 
   return noError_;
 }
@@ -109,7 +127,6 @@ ProgramParser::helpRequested()
   return helpArg_;
 }
 
-
 void
 ProgramParser::printHelp()
 {
@@ -118,13 +135,13 @@ ProgramParser::printHelp()
             << "[-d/--dst <path>]"
             << "\n" << std::endl;
 
-  std::cout << "The command listed below describes how to use the binary:\n"
+  std::cout << "The commands listed below describes how to use the binary:\n"
             << std::endl;
 
   // Prints help for every possible option
   for (const auto& e : OPT_TO_KEY)
   {
-    if (!OPT_TO_DESC.count(e.first)) continue;
+    if (OPT_TO_DESC.count(e.first) == 0) continue;
 
     const auto& optStr = OPT_TO_DESC.at(e.first);
     auto cmdStr = optStr.substr(0, optStr.find('{'));
@@ -141,7 +158,7 @@ ProgramParser::printHelp()
 void
 ProgramParser::checkRequiredOpt(const char* optKey, const char* message)
 {
-  if (!arguments_.count(optKey))
+  if (arguments_.count(optKey) == 0)
   {
     std::cerr << "Missing option: " << message << std::endl;
     noError_ = false;

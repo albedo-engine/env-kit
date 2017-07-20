@@ -13,6 +13,8 @@ namespace data
 
 class Equirectangular : public Image
 {
+  public:
+    Equirectangular(float* data, int width, int height, int nbComponents);
 };
 
 } // namespace data
