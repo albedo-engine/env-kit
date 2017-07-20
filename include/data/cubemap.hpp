@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include <data/image.hpp>
 #include <math/vector.hpp>
 
 namespace albedo
@@ -26,10 +27,10 @@ enum CubemapFace
   NEG_Z
 };
 
-class Cubemap
+class Cubemap : public Image
 {
   public:
-    static const math::Vector FACE_UV_VEC[6][2];
+    static const math::Vector                           FACE_UV_VEC[6][2];
     static const std::unordered_map<uint, math::Vector> FACE_TO_VEC;
     static const std::unordered_map<uint, std::string>  TYPE_TO_STRING;
 
@@ -47,23 +48,6 @@ class Cubemap
 
     inline int
     getSize() const { return width_; }
-
-    inline int
-    getNbComp() const { return nbComponents_; }
-
-    inline int
-    getNbMipmaps() const { return mipmaps_.size(); }
-
-    inline const std::vector<std::vector<float*>>
-    getMipmaps() const { return mipmaps_; }
-
-    inline const std::vector<float*>&
-    getMip(std::size_t i) const { return mipmaps_[i]; }
-
-  private:
-    std::vector<std::vector<float*>>  mipmaps_;
-    int                               width_;
-    int                               nbComponents_;
 
 };
 

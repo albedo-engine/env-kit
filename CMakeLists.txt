@@ -13,6 +13,11 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${BUILD_DIR})
 
 set(BIN_SOURCE_FILES prefilter/main.cpp)
 
+IF (NOT DEFINED _ALBEDO_TOOLS_MODE)
+    SET(_ALBEDO_TOOLS_MODE 0)
+ENDIF()
+add_definitions(-D_ALBEDO_TOOLS_MODE=${_ALBEDO_TOOLS_MODE})
+
 include_directories(
         ${CMAKE_SOURCE_DIR}/include
 )
