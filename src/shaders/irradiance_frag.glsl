@@ -26,13 +26,14 @@ void main() {
         for(float theta = 0.0; theta < PI_4; theta += sampleDelta)
         {
             vec3 tangentSample = vec3(sin(theta) * cos(phi),  sin(theta) * sin(phi), cos(theta));
-            vec3 sampleVec = tangentSample.x * right + tangentSample.y * up + tangentSample.z * N;
+            vec3 sampleVec = tangentSample.x * right + tangentSample.y * up
+            + tangentSample.z * normal;
 
-            irradiance += texture(environmentMap, sampleVec).rgb * cos(theta) * sin(theta);
+            irradiance += texture(uMap, sampleVec).rgb * cos(theta) * sin(theta);
             nbSamples++;
         }
     }
-    irradiance = PI * irradiance * (1.0 / float(nrSamples));
+    irradiance = PI * irradiance * (1.0 / float(nbSamples));
 
     fragColor = vec4(irradiance, 1.0);
 

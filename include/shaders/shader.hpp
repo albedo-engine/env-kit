@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iostream>
+
 #include <GL/glew.h>
 #include <GL/gl.h>
 
@@ -26,6 +28,9 @@ class Shader
 
     inline GLuint
     id() { return program_; }
+
+    void
+    printError();
 
   private:
     bool

@@ -21,13 +21,14 @@ ReaderWriter::~ReaderWriter()
   for (auto& img : images_) delete[] img;
 }
 
-std::vector<float*>
-ReaderWriter::loadCubemap(char const* path, char const* ext,
-                          int& width, int& nbComponents)
+data::Cubemap
+ReaderWriter::loadCubemap(char const* path, char const* ext)
 {
-  // Contains the the single mipmaps layer of the Cubemap.
-  std::vector<float*> faces;
+  int width = 0;
+  int height = 0;
+  int nbComponents = 0;
 
+  std::vector<float*> faces;
   std::string file;
   for (size_t i = 0; i < 6; ++i)
   {
@@ -35,23 +36,26 @@ ReaderWriter::loadCubemap(char const* path, char const* ext,
            + "-"
            + std::string(data::Cubemap::TYPE_TO_STRING.at(i)) + "." + ext;
 
-    unsigned char* raw = stbi_load(file.c_str(),
-                                   &width, &width, &nbComponents, STBI_rgb);
+    float* data = this->loadFromExt(file.c_str(), ext,
+                                    width, height, nbComponents);
 
-    if (!raw)
-    {
-      std::string exception = "EnvProcessor: Fail to load " + std::string(file);
-      throw std::invalid_argument(exception);
-    }
-
-    float* data = this->toFloat(raw, width * width, nbComponents);
     faces.push_back(data);
     images_.push_back(data);
-
-    stbi_image_free(raw);
   }
+  return data::Cubemap(faces, width, nbComponents);
+}
 
-  return faces;
+data::Equirectangular
+ReaderWriter::loadEquirect(char const *path, char const *ext)
+{
+  int width = 0;
+  int height = 0;
+  int nbComponents = 0;
+  std::string file = path + std::string(".") + ext;
+  float* data = this->loadFromExt(file.c_str(), ext,
+                                  width, height, nbComponents);
+
+  return data::Equirectangular(data, width, height, nbComponents);
 }
 
 void
@@ -68,15 +72,19 @@ ReaderWriter::save(const data::Cubemap &cubemap,
   {
     // Creates the full location where to store the image.
     std::string file = std::string(path) + "-";
-    file += data::Cubemap::TYPE_TO_STRING.at(i) + "." + ext;
+    //file += data::Cubemap::TYPE_TO_STRING.at(i) + "." + ext;
+    file += data::Cubemap::TYPE_TO_STRING.at(i) + ".hdr";
 
     // Converts back float data to unsigned char
-    unsigned char* img = this->toChar(mip[i], size * size, cubemap.getNbComp());
+    //unsigned char* img = this->toChar(mip[i], size * size, cubemap.getNbComp
+      //());
+    float* img = mip[i];
 
-    int ret = stbi_write_tga(file.c_str(), size, size, nbComp, img);
+    //int ret = stbi_write_tga(file.c_str(), size, size, nbComp, img);
+    int ret = stbi_write_hdr(file.c_str(), size, size, nbComp, img);
     if (!ret)
     {
-      std::string error = "ReaderWriter: An error occured while saving'";
+      std::string error = "ReaderWriter: an error occured while saving'";
       error += path + std::string("'");
       throw std::runtime_error(error);
     }
@@ -86,11 +94,60 @@ ReaderWriter::save(const data::Cubemap &cubemap,
 }
 
 float*
-ReaderWriter::toFloat(const unsigned char *data, int size, int nbComp) const
+ReaderWriter::loadFromExt(char const* fullPath, char const* ext,
+                          int& width, int& height, int& nbComponents)
+{
+  float* data = nullptr;
+  if (strcmp(ext, "hdr") != 0)
+  {
+    unsigned char* raw = this->loadUnsigned(fullPath, width,
+                                            height, nbComponents);
+    data = this->toFloat(raw, width * width, nbComponents);
+    // Free previously loaded image that
+    // is now stored in the data pointer as float.
+    stbi_image_free(raw);
+  }
+  else
+    data = this->loadFloat(fullPath, width, height, nbComponents);
+
+  return data;
+}
+
+unsigned char*
+ReaderWriter::loadUnsigned(char const* path, int& width,
+                           int& height, int& nbComponents)
+{
+  auto* raw = stbi_load(path, &width, &height, &nbComponents, STBI_rgb);
+  if (!raw)
+  {
+    std::string exception = "EnvProcessor: fail to load " + std::string(path);
+    throw std::invalid_argument(exception);
+  }
+
+  return raw;
+}
+
+float*
+ReaderWriter::loadFloat(char const* path, int& width,
+                        int& height, int& nbComponents)
+{
+  auto* raw = stbi_loadf(path, &width, &height, &nbComponents, 0);
+  if (!raw)
+  {
+    std::string exception = "EnvProcessor: fail to load " + std::string(path);
+    throw std::invalid_argument(exception);
+  }
+
+  return raw;
+}
+
+float*
+ReaderWriter::toFloat(const unsigned char *data,
+                      int size, int nbComp) const noexcept
 {
   int nbValues = size * nbComp;
 
-  float* result = new float[nbValues];
+  auto* result = new float[nbValues];
   for (std::size_t i = 0; i < nbValues; ++i)
   {
     result[i] = ((float)data[i]) / 255.0f;
@@ -99,11 +156,12 @@ ReaderWriter::toFloat(const unsigned char *data, int size, int nbComp) const
 }
 
 unsigned char*
-ReaderWriter::toChar(const float *data, int size, int nbComp) const
+ReaderWriter::toChar(const float *data,
+                     int size, int nbComp) const noexcept
 {
   int nbValues = size * nbComp;
 
-  unsigned char* result = new unsigned char[nbValues];
+  auto* result = new unsigned char[nbValues];
   for (std::size_t i = 0; i < nbValues; ++i)
   {
     result[i] = (unsigned char)(data[i] * 255.0f);

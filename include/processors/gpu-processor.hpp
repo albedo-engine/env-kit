@@ -1,6 +1,9 @@
 #pragma once
 
+#include <iostream>
+
 #include <GL/glew.h>
+#include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -13,6 +16,8 @@
 #include <shaders/formatted/irradiance_frag_glsl.hpp>
 #include <shaders/formatted/tocubemap_vert_glsl.hpp>
 #include <shaders/formatted/tocubemap_frag_glsl.hpp>
+#include <shaders/formatted/test_glsl.hpp>
+#include <shaders/formatted/test_frag_glsl.hpp>
 #include <shaders/shader.hpp>
 
 namespace albedo
@@ -27,18 +32,15 @@ namespace process
 class GPUProcessor : public AbstractProcessor
 {
   public:
-    GPUProcessor();
+    GPUProcessor(GLFWwindow* window);
 
   public:
     void
     init();
 
     data::Cubemap
-    computeDiffuseIS(const data::Cubemap& cubemap, uint16_t nbSamples) override;
-
-    data::Cubemap
-    computeDiffuseIS(const data::Equirectangular& cubemap,
-                     uint16_t nbSamples) override;
+    computeDiffuseIS(const data::Cubemap& cubemap,
+                     uint16_t nbSamples, int size) override;
 
     void
     computeSpecularIS() override;
@@ -47,7 +49,7 @@ class GPUProcessor : public AbstractProcessor
     computeBRDFLUT() override;
 
     data::Cubemap
-    toCubemap(const data::Equirectangular& map);
+    toCubemap(const data::Equirectangular& map, int size);
 
     data::Equirectangular
     toEquirectangular(const data::Cubemap& map);
@@ -55,6 +57,12 @@ class GPUProcessor : public AbstractProcessor
   private:
     GLuint
     generateGLCubemap(GLsizei width, GLsizei height);
+
+    data::Cubemap
+    generateCubemapFromGLID(GLuint texID, int size);
+
+    GLint
+    getUniformId(GLint shaderId, const char* name);
 
   private:
     static const glm::mat4  CAMERA_VIEWS[6];
@@ -70,6 +78,8 @@ class GPUProcessor : public AbstractProcessor
 
     GLuint          cubeVAO_;
     GLuint          cubeVBO_;
+
+    GLFWwindow*     window_;
 };
 
 } // namespace process

@@ -26,7 +26,7 @@ foreach (file ${FILES})
     file(
         WRITE ${outfile}
         "#include <GL/gl.h>\n"
-        "static const GLchar *shader_source_${name}_${ext_no_dot}[] = {\n"
+        "static const GLchar *shader_source_${name}_${ext_no_dot} = {\n"
         "${source}"
         "};\n"
     )

@@ -14,6 +14,6 @@ void main() {
     uv *= invAtan;
     uv += 0.5;
 
-    fragColor = vec4(texture(map, uv).rgb, 1.0);
+    fragColor = vec4(texture(uMap, uv).rgb, 1.0);
 
 }

@@ -6,6 +6,8 @@
 #include <iostream>
 
 #include <data/cubemap.hpp>
+#include <data/equirectangular.hpp>
+#include <data/image.hpp>
 
 namespace albedo
 {
@@ -31,19 +33,31 @@ class ReaderWriter
     ~ReaderWriter();
 
   public:
-    std::vector<float*>
-    loadCubemap(char const* path, char const* ext,
-                int& width, int& nbComponents);
+    data::Equirectangular
+    loadEquirect(char const* path, char const* ext);
+
+    data::Cubemap
+    loadCubemap(char const* path, char const* ext);
 
     void
     save(const data::Cubemap& cubemap, const char* path, const char* ext) const;
 
   private:
     float*
-    toFloat(const unsigned char* data, int size, int nbComp) const;
+    loadFromExt(char const* fullPath, char const* ext,
+                int& width, int& height, int& nbComponents);
 
     unsigned char*
-    toChar(const float* data, int size, int nbComp) const;
+    loadUnsigned(char const* path, int& width, int& height, int& nbComponents);
+
+    float*
+    loadFloat(char const* path, int& width, int& height, int& nbComponents);
+
+    float*
+    toFloat(const unsigned char* data, int size, int nbComp) const noexcept;
+
+    unsigned char*
+    toChar(const float* data, int size, int nbComp) const noexcept;
 
   private:
     static std::shared_ptr<ReaderWriter> instance_;

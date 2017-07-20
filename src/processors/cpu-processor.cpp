@@ -10,7 +10,8 @@ namespace process
 {
 
 data::Cubemap
-CPUProcessor::computeDiffuseIS(const data::Cubemap& cubemap, uint16_t nbSamples)
+CPUProcessor::computeDiffuseIS(const data::Cubemap& cubemap,
+                               uint16_t nbSamples, int writeSize)
 {
   int size = cubemap.getSize();
   int halfSize = size / 2;
@@ -94,13 +95,6 @@ CPUProcessor::computeDiffuseIS(const data::Cubemap& cubemap, uint16_t nbSamples)
   return data::Cubemap(faces, size, nbComp);
 }
 
-data::Cubemap
-CPUProcessor::computeDiffuseIS(const data::Equirectangular &map,
-                                             uint16_t nbSamples)
-{
-  throw "Not implemented.";
-}
-
 void
 CPUProcessor::computeSpecularIS()
 {
@@ -114,7 +108,7 @@ CPUProcessor::computeBRDFLUT()
 }
 
 data::Cubemap
-CPUProcessor::toCubemap(const data::Equirectangular& map)
+CPUProcessor::toCubemap(const data::Equirectangular& map, int size)
 {
   throw "Not implemented yet.";
 }

@@ -74,6 +74,12 @@ Shader::hasCompiled(GLuint shader)
   return true;
 }
 
+void
+Shader::printError()
+{
+  std::cerr << compileInfo_ << std::endl;
+}
+
 }
 
 }
