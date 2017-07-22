@@ -36,29 +36,6 @@ int main(int argc, char** argv)
     return 0;
   }
 
-#if D_ALBEDO_TOOLS_MODE <= GPU_ONLY_MODE
-  glfwInit();
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-  glfwWindowHint(GLFW_SAMPLES, 4);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-  GLFWwindow* window = glfwCreateWindow(600, 400, "Test", NULL, NULL);
-  glfwMakeContextCurrent(window);
-  if (window == NULL)
-  {
-    std::cerr << "Failed to create GLFW window" << std::endl;
-    glfwTerminate();
-    return 1;
-  }
-  glewExperimental = GL_TRUE;
-  if (glewInit() != GLEW_OK)
-  {
-    std::cerr << "Failed to initialize GLEW" << std::endl;
-    return 1;
-  }
-#endif
-
   // Parses program arguments.
   uint16_t nbSamples = (uint16_t)programData->getArg("samples").intValue;
   auto inputPath = programData->getArg("src").strValue;
@@ -88,9 +65,30 @@ int main(int argc, char** argv)
   // and saving textures.
   auto readerWriter = albedo::tools::data::ReaderWriter::instance();
 
-  // Creates processor in charge of
-  // computing the texture maps.
+  // Creates processor in charge of computing the texture maps.
 #if D_ALBEDO_TOOLS_MODE <= GPU_ONLY_MODE
+  // Opens a glfw window to run OpenGL in a context.
+  glfwInit();
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+  glfwWindowHint(GLFW_SAMPLES, 4);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+  GLFWwindow* window = glfwCreateWindow(600, 400, "Test", NULL, NULL);
+  glfwMakeContextCurrent(window);
+  if (window == NULL)
+  {
+    std::cerr << "Failed to create GLFW window" << std::endl;
+    glfwTerminate();
+    return 1;
+  }
+  glewExperimental = GL_TRUE;
+  if (glewInit() != GLEW_OK)
+  {
+    std::cerr << "Failed to initialize GLEW" << std::endl;
+    return 1;
+  }
+
   std::shared_ptr<process::AbstractProcessor> processor = nullptr;
   if (nogpu)
     processor = std::make_shared<process::CPUProcessor>();

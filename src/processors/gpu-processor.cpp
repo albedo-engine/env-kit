@@ -78,7 +78,7 @@ const float GPUProcessor::CUBE_VERTICES[] =
 };
 
 const glm::mat4 GPUProcessor::CAM_PROJ(
-  glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 2.0f)
+  glm::perspective(90.0f, 1.0f, 0.1f, 2.0f)
 );
 
 GPUProcessor::GPUProcessor(GLFWwindow* window)
@@ -160,15 +160,16 @@ GPUProcessor::computeDiffuseIS(const data::Cubemap& cubemap,
   auto& data = cubemap.getMip(0);
   for(GLuint i = 0; i < data.size(); i++)
   {
-    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB,
-                 cubemap.getSize(), cubemap.getSize(), 0, GL_RGB,
-                 GL_UNSIGNED_BYTE, data[i]);
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0,
+                 GL_RGB16F, cubemap.getSize(), cubemap.getSize(),
+                 0, GL_RGB, GL_FLOAT, data[i]);
   }
   glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+  glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
   // Creates the VRAM-stored cubemap containing
   // the irradiance for each pixel.
@@ -179,7 +180,7 @@ GPUProcessor::computeDiffuseIS(const data::Cubemap& cubemap,
   glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, size, size);
 
   // Binds the shader computing the irradiance map.
-  GLuint shaderId = shaderIrradiance_.id();
+  GLint shaderId = shaderIrradiance_.id();
   shaderIrradiance_.use();
 
   // Binds equirectangular texture in
@@ -215,134 +216,9 @@ GPUProcessor::computeDiffuseIS(const data::Cubemap& cubemap,
   }
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-  auto result = this->generateCubemapFromGLID(irradianceMapId, size);
-
-  glDeleteTextures(1, &cubemapID);
-  glDeleteTextures(1, &irradianceMapId);
-
-  return result;
-}
-
-/*data::Cubemap
-GPUProcessor::computeDiffuseIS(const data::Equirectangular& map,
-                               uint16_t nbSamples)
-{
-  float* equiplanarData = map.getMip(0)[0];
-  // Creates GPU texture storing the
-  // HDR equiplanar texture in VRAM.
-  GLuint equiplanarTextId = 0;
-  glGenTextures(1, &equiplanarTextId);
-  glBindTexture(GL_TEXTURE_2D, equiplanarTextId);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, map.getWidth(), map.getHeight(),
-               0, GL_RGB, GL_FLOAT, equiplanarData);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glBindTexture(GL_TEXTURE_2D, 0);
-
-  GLuint cubemapId = this->generateGLCubemap(512, 512);
-
-  // Binds the shader writing from equiplanar to a cubemap.
-  // Sends required uniforms, such as equirectangular map,
-  // perspective matrix, current camera view, ...
-  GLuint shaderId = shaderEquiToCubemap_.id();
-  shaderEquiToCubemap_.use();
-
-  glUniformMatrix4fv(glGetUniformLocation(shaderId, "uProjection"),
-                     1, GL_FALSE, &CAM_PROJ[0][0]);
-
-  // Binds equirectangular texture in
-  // the first texture unit.
-  glUniform1i(glGetUniformLocation(shaderId, "uMap"), 0);
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, equiplanarTextId);
-
-  glViewport(0, 0, 512, 512);
-  glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
-  glBindRenderbuffer(GL_RENDERBUFFER, rbo_);
-  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 512, 512);
-  for (unsigned int i = 0; i < 6; ++i)
-  {
-    // Sends current camera look-at to render the appropriate side
-    // of the cubemap.
-    glUniformMatrix4fv(glGetUniformLocation(shaderId, "uView"),
-                       1, GL_FALSE, &CAMERA_VIEWS[i][0][0]);
-
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                           GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, cubemapId, 0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // Draws Cube on which interpolation
-    // will be made.
-    glBindVertexArray(cubeVAO_);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-    glBindVertexArray(0);
-  }
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-  // Creates the VRAM-stored cubemap containing
-  // the irradiance for each pixel.
-  unsigned int irradianceMapId = this->generateGLCubemap(32, 32);
-
-  glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
-  glBindRenderbuffer(GL_RENDERBUFFER, rbo_);
-  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 32, 32);
-
-  // Binds the shader computing the irradiance map.
-  // Sends cubemap uniform, etc...
-  shaderId = shaderIrradiance_.id();
-  shaderIrradiance_.use();
-
-  glUniformMatrix4fv(glGetUniformLocation(shaderId, "uProjection"),
-                     1, GL_FALSE, &CAM_PROJ[0][0]);
-
-  // Binds the cubemap texture in
-  // the first texture unit.
-  glUniform1i(glGetUniformLocation(shaderId, "uMap"), 0);
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapId);
-
-  for (unsigned int i = 0; i < 6; ++i)
-  {
-    glUniformMatrix4fv(glGetUniformLocation(shaderId, "uView"),
-                       1, GL_FALSE, &CAMERA_VIEWS[i][0][0]);
-    glUniformMatrix4fv(glGetUniformLocation(shaderId, "uView"),
-                       1, GL_FALSE, &CAMERA_VIEWS[i][0][0]);
-    glUniform1f(glGetUniformLocation(shaderId, "uNbSamples"), (float)nbSamples);
-
-    glFramebufferTexture2D(GL_FRAMEBUFFER,
-                           GL_COLOR_ATTACHMENT0,
-                           GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-                           irradianceMapId, 0);
-
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    // Draws Cube on which interpolation
-    // will be made.
-    glBindVertexArray(cubeVAO_);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-    glBindVertexArray(0);
-  }
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-  // DEBUG
-  std::vector<float*> faces;
-  for (auto i = 0; i < 6; i++)
-  {
-    float* data =  new float[32 * 32 * 3];
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMapId);
-    glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, GL_FLOAT,
-                  data);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-
-    faces.push_back(data);
-  }
-  return data::Cubemap(faces, 32, 3);
-
-  glm::mat4 projection = glm::perspective(90.0f, 600.0f / 400.0f, 0.1f, 100
-  .0f);
-  glm::mat4 view = CAMERA_VIEWS[0];
+  /*// DEBUG
+  glm::mat4 projection = glm::perspective(90.0f, 600.0f / 400.0f, 0.1f, 100.0f);
+  glm::mat4 view = CAMERA_VIEWS[1];
 
   shader::Shader backgroundShader(shader_source_test_glsl, shader_source_test_frag_glsl);
   if (!backgroundShader.compile())
@@ -379,12 +255,15 @@ GPUProcessor::computeDiffuseIS(const data::Equirectangular& map,
 
     glfwSwapBuffers(window_);
   }
-  // END DEBUG
+  // END DEBUG */
 
-  // Frees the Cubemap textures stored on the GPU VRAM.
-  //glDeleteTextures(1, &cubemapId);
-  //glDeleteTextures(1, &irradianceMapId);
-} */
+  auto result = this->generateCubemapFromGLID(irradianceMapId, size);
+
+  glDeleteTextures(1, &cubemapID);
+  glDeleteTextures(1, &irradianceMapId);
+
+  return result;
+}
 
 void
 GPUProcessor::computeSpecularIS()
