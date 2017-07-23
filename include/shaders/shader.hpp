@@ -2,8 +2,11 @@
 
 #include <iostream>
 
-#include <GL/glew.h>
-#include <GL/gl.h>
+#if ALBEDO_TOOLS_MODE <= ALBEDO_TBB_GPU_MODE
+  #include <GL/glew.h>
+  #include <GL/gl.h>
+#endif
+
 
 namespace albedo
 {
@@ -16,6 +19,7 @@ namespace shader
 
 class Shader
 {
+#if ALBEDO_TOOLS_MODE <= ALBEDO_TBB_GPU_MODE
   public:
     Shader(const GLchar* vertexShader, const GLchar* fragmentShader);
 
@@ -42,6 +46,7 @@ class Shader
 
     const char*   vertexShader_;
     const char*   fragmentShader_;
+#endif
 };
 
 } // namespace shader

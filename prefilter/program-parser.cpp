@@ -22,7 +22,8 @@ const std::unordered_map<std::string, std::string> ProgramParser::OPT_TO_KEY
   { "-n", "samples" },
   { "--nb-samples", "samples" },
   { "--output-size", "outsize" },
-  { "--no-gpu", "nogpu" }
+  { "--no-gpu", "nogpu" },
+  { "--one-thread", "onethread" }
 };
 
 const std::unordered_map<std::string, std::string> ProgramParser::OPT_TO_DESC
@@ -50,7 +51,8 @@ const std::unordered_map<std::string, bool> ProgramParser::NUMERICAL_OPT
 
 const std::unordered_map<std::string, bool> ProgramParser::FLAG_OPT
 {
-  { "nogpu", false }
+  { "nogpu", false },
+  { "onethread", false },
 };
 
 ProgramParser::ProgramParser()
@@ -59,6 +61,7 @@ ProgramParser::ProgramParser()
 {
   arguments_["samples"].intValue  = 125;
   arguments_["nogpu"].boolValue   = false;
+  arguments_["onethread"].boolValue = false;
   arguments_["outsize"].strValue  = "256x256";
 }
 

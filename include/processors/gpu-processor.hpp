@@ -2,8 +2,10 @@
 
 #include <iostream>
 
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
+#if ALBEDO_TOOLS_MODE <= ALBEDO_TBB_GPU_MODE
+  #include <GL/glew.h>
+  #include <GLFW/glfw3.h>
+#endif
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -20,6 +22,8 @@
 #include <shaders/formatted/test_frag_glsl.hpp>
 #include <shaders/shader.hpp>
 
+#include <utils/singleton.hpp>
+
 namespace albedo
 {
 
@@ -29,14 +33,14 @@ namespace tools
 namespace process
 {
 
-class GPUProcessor : public AbstractProcessor
+class GPUProcessor : public AbstractProcessor,
+                     public Singleton<GPUProcessor>
 {
-  public:
-    GPUProcessor(GLFWwindow* window);
+  friend class Singleton<GPUProcessor>;
 
   public:
     void
-    init();
+    init() override;
 
     data::Cubemap
     computeDiffuseIS(const data::Cubemap& cubemap,
@@ -53,6 +57,14 @@ class GPUProcessor : public AbstractProcessor
 
     data::Equirectangular
     toEquirectangular(const data::Cubemap& map);
+
+#if ALBEDO_TOOLS_MODE <= ALBEDO_TBB_GPU_MODE
+  public:
+    inline void
+    setWindow(GLFWwindow* window){ window_ = window; }
+
+  protected:
+    GPUProcessor();
 
   private:
     GLuint
@@ -80,6 +92,7 @@ class GPUProcessor : public AbstractProcessor
     GLuint          cubeVBO_;
 
     GLFWwindow*     window_;
+#endif
 };
 
 } // namespace process

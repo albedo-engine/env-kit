@@ -1,22 +1,22 @@
+#include <algorithm>
+#include <cstring>
 #include <chrono>
 #include <iostream>
 
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
+#if ALBEDO_TOOLS_MODE <= ALBEDO_TBB_GPU_MODE
+  #include <GL/glew.h>
+  #include <GLFW/glfw3.h>
+#endif
 
 #include <data/cubemap.hpp>
 #include <processors/abstract-processor.hpp>
 #include <processors/cpu-processor.hpp>
 #include <processors/gpu-processor.hpp>
-#include <algorithm>
-#include <cstring>
 
 #include "program-parser.hpp"
 #include "data/reader-writer.hpp"
 
-#define TBB_GPU_MODE  0
-#define GPU_ONLY_MODE 1
-#define TBB_ONLY_MODE 2
+#define TEST(x) std::cout << x << std::endl
 
 using namespace albedo::tools;
 
@@ -60,13 +60,16 @@ int main(int argc, char** argv)
   int requestedHeight = std::stoi(outputSizeStr.substr(splitIdx + 1));
 
   bool nogpu = programData->getArg("nogpu").boolValue;
+  bool nothread = programData->getArg("onethread").boolValue;
 
   // Creates object in charge of loading
   // and saving textures.
   auto readerWriter = albedo::tools::data::ReaderWriter::instance();
 
   // Creates processor in charge of computing the texture maps.
-#if D_ALBEDO_TOOLS_MODE <= GPU_ONLY_MODE
+  std::shared_ptr<process::AbstractProcessor> processor = nullptr;
+
+#if ALBEDO_TOOLS_MODE <= ALBEDO_TBB_GPU_MODE
   // Opens a glfw window to run OpenGL in a context.
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -89,14 +92,19 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  std::shared_ptr<process::AbstractProcessor> processor = nullptr;
   if (nogpu)
-    processor = std::make_shared<process::CPUProcessor>();
+    processor = process::CPUProcessor::instance();
   else
-    processor = std::make_shared<process::GPUProcessor>(window);
+  {
+    auto& gpuprocessor = process::GPUProcessor::instance();
+    gpuprocessor->setWindow(window);
+    processor = gpuprocessor;
+  }
 #else
-  processor = std::make_shared<process::CPUProcessor>();
+  processor = process::CPUProcessor::instance();
 #endif
+
+  processor->init();
 
   // Starts timer computing time taken by
   // the irradiance map convolution.
@@ -106,16 +114,17 @@ int main(int argc, char** argv)
   {
     auto map = readerWriter->loadEquirect(inputPath.c_str(), ext.c_str());
     auto cubemap = processor->toCubemap(map, 512);
+    readerWriter->save(cubemap, outputPath.c_str(), "tga");
     auto irradianceCubemap = processor->computeDiffuseIS(cubemap,
                                                          nbSamples,
                                                          requestedWidth);
     readerWriter->save(irradianceCubemap, outputPath.c_str(), "tga");
   }
-  else if (type == "cubemap_multifaces")
+  /*else if (type == "cubemap_multifaces")
   {
     auto map = readerWriter->loadCubemap(inputPath.c_str(), ext.c_str());
     auto irradianceCubemap = processor->computeDiffuseIS(map, nbSamples, 10);
-  }
+  }*/
 
   auto tEnd = Time::now();
 

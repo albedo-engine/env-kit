@@ -24,6 +24,9 @@ namespace process
 class AbstractProcessor
 {
   public:
+    virtual void
+    init() = 0;
+
     virtual data::Cubemap
     computeDiffuseIS(const data::Cubemap& cubemap,
                      uint16_t nbSamples, int size) = 0;

@@ -9,6 +9,8 @@ namespace tools
 namespace process
 {
 
+#if ALBEDO_TOOLS_MODE <= ALBEDO_TBB_GPU_MODE
+
 const glm::mat4 GPUProcessor::CAMERA_VIEWS[] =
 {
   glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f),
@@ -81,16 +83,15 @@ const glm::mat4 GPUProcessor::CAM_PROJ(
   glm::perspective(90.0f, 1.0f, 0.1f, 2.0f)
 );
 
-GPUProcessor::GPUProcessor(GLFWwindow* window)
-            : shaderEquiToCubemap_(
-                shader_source_tocubemap_vert_glsl,
-                shader_source_tocubemap_frag_glsl
-            )
-            , shaderIrradiance_(
-                shader_source_irradiance_vert_glsl,
-                shader_source_irradiance_frag_glsl
-            )
-            , window_(window)
+GPUProcessor::GPUProcessor()
+            : shaderEquiToCubemap_{shader_source_tocubemap_vert_glsl,
+               shader_source_tocubemap_frag_glsl}
+            , shaderIrradiance_{shader_source_irradiance_vert_glsl,
+                                shader_source_irradiance_frag_glsl}
+{ }
+
+void
+GPUProcessor::init()
 {
   if (!shaderEquiToCubemap_.compile())
   {
@@ -141,12 +142,7 @@ GPUProcessor::GPUProcessor(GLFWwindow* window)
   glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
-
 }
-
-void
-GPUProcessor::init()
-{ }
 
 data::Cubemap
 GPUProcessor::computeDiffuseIS(const data::Cubemap& cubemap,
@@ -215,47 +211,6 @@ GPUProcessor::computeDiffuseIS(const data::Cubemap& cubemap,
     glBindVertexArray(0);
   }
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-  /*// DEBUG
-  glm::mat4 projection = glm::perspective(90.0f, 600.0f / 400.0f, 0.1f, 100.0f);
-  glm::mat4 view = CAMERA_VIEWS[1];
-
-  shader::Shader backgroundShader(shader_source_test_glsl, shader_source_test_frag_glsl);
-  if (!backgroundShader.compile())
-  {
-    std::cerr << "Error compiling Background shader:" << std::endl;
-    backgroundShader.printError();
-  }
-
-  int w = 600;
-  int h = 400;
-  glfwGetFramebufferSize(window_, &w, &h);
-  glViewport(0, 0, w, h);
-
-  GLuint testId = backgroundShader.id();
-  while (!glfwWindowShouldClose(window_))
-  {
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    backgroundShader.use();
-    glUniformMatrix4fv(glGetUniformLocation(testId, "uProjection"),
-                       1, GL_FALSE, &projection[0][0]);
-    glUniformMatrix4fv(glGetUniformLocation(testId, "uView"),
-                       1, GL_FALSE, &view[0][0]);
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMapId);
-    GLint uMapId = glGetUniformLocation(testId, "uMap");
-    glUniform1i(uMapId, 0);
-
-    glBindVertexArray(cubeVAO_);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-    glBindVertexArray(0);
-
-    glfwSwapBuffers(window_);
-  }
-  // END DEBUG */
 
   auto result = this->generateCubemapFromGLID(irradianceMapId, size);
 
@@ -412,6 +367,45 @@ GPUProcessor::getUniformId(GLint shaderId, const char *name)
 
   return id;
 }
+
+#else
+data::Cubemap
+GPUProcessor::computeDiffuseIS(const data::Cubemap& cubemap,
+                               uint16_t nbSamples, int size)
+{
+  throw std::runtime_error("GPUProcessor: you should compile with the "
+                             "appropriate options.");
+}
+
+void
+GPUProcessor::computeSpecularIS()
+{
+  throw std::runtime_error("GPUProcessor: you should compile with the "
+                             "appropriate options.");
+}
+
+void
+GPUProcessor::computeBRDFLUT()
+{
+  throw std::runtime_error("GPUProcessor: you should compile with the "
+                             "appropriate options.");
+}
+
+data::Cubemap
+GPUProcessor::toCubemap(const data::Equirectangular& map, int size)
+{
+  throw std::runtime_error("GPUProcessor: you should compile with the "
+                             "appropriate options.");
+}
+
+data::Equirectangular
+GPUProcessor::toEquirectangular(const data::Cubemap& map)
+{
+  throw std::runtime_error("GPUProcessor: you should compile with the "
+                             "appropriate options.");
+}
+
+#endif
 
 } // process
 

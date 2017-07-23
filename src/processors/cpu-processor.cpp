@@ -9,6 +9,12 @@ namespace tools
 namespace process
 {
 
+const glm::vec2 CPUProcessor::INV_ATAN = glm::vec2(0.1591, 0.3183);
+
+void
+CPUProcessor::init()
+{ }
+
 data::Cubemap
 CPUProcessor::computeDiffuseIS(const data::Cubemap& cubemap,
                                uint16_t nbSamples, int writeSize)
@@ -19,9 +25,7 @@ CPUProcessor::computeDiffuseIS(const data::Cubemap& cubemap,
 
   std::vector<float*> faces;
   for (uint8_t i = 0; i < 6; ++i)
-  {
     faces.push_back(new float[size * size * nbComp]);
-  }
 
   static const float TWO_PI = (2.0f * M_PI);
   static const float PI_2 = (0.5f * M_PI);
@@ -82,7 +86,7 @@ CPUProcessor::computeDiffuseIS(const data::Cubemap& cubemap,
 
         int px = 0;
         int py = 0;
-        cubemap.getFetchCoord(f, normal, px, py);
+        cubemap.getFetchCoord(f, normal, size, px, py);
 
         int idx = (px + py * size) * 3;
         faces[f][idx] = r;
@@ -110,13 +114,63 @@ CPUProcessor::computeBRDFLUT()
 data::Cubemap
 CPUProcessor::toCubemap(const data::Equirectangular& map, int size)
 {
-  throw "Not implemented yet.";
+  int nbComp = map.getNbComp();
+  int halfSize = size / 2;
+
+  std::vector<float*> faces;
+  for (uint8_t i = 0; i < 6; ++i)
+    faces.push_back(new float[size * size * nbComp]);
+
+  for (uint8_t f = 0; f < 6; ++f)
+  {
+    for (int u = -halfSize; u < halfSize; ++u)
+    {
+      for (int v = -halfSize; v < halfSize; ++v)
+      {
+        auto normal = faceIDXtoVector(f, halfSize, u, v);
+        normal = glm::normalize(normal);
+
+        glm::vec2 uv = glm::vec2(glm::atan(normal.z, normal.x), asin(normal.y));
+        uv *= INV_ATAN;
+        uv += 0.5;
+
+        float r = 0.0f;
+        float g = 0.0f;
+        float b = 0.0f;
+        map.getPixel(0, uv[0], uv[1], r, g, b);
+
+        int px = 0;
+        int py = 0;
+        data::Cubemap::getFetchCoord(f, normal, size, px, py);
+
+        int idx = (px + py * size) * nbComp;
+        faces[f][idx] = r;
+        faces[f][idx + 1] = g;
+        faces[f][idx + 2] = b;
+
+      }
+    }
+  }
+
+  return data::Cubemap(faces, size, nbComp);
 }
 
 data::Equirectangular
 CPUProcessor::toEquirectangular(const data::Cubemap& map)
 {
   throw "Not implemented yet.";
+}
+
+glm::vec3
+CPUProcessor::faceIDXtoVector(uint8_t faceIDX, int distToCenter, int u, int v)
+{
+  if (faceIDX == 0 || faceIDX == 1)
+    return glm::vec3((faceIDX == 0) ? distToCenter : - distToCenter, u, v);
+
+  if (faceIDX == 2 || faceIDX == 3)
+    return glm::vec3(u, (faceIDX == 2) ? distToCenter : - distToCenter, v);
+
+  return glm::vec3(u, v, (faceIDX == 4) ? distToCenter : - distToCenter);
 }
 
 } // process
