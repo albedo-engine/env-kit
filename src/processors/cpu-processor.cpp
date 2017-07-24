@@ -126,14 +126,18 @@ CPUProcessor::toCubemap(const data::Equirectangular& map, int size)
 
         // TODO: Apply bilinear interpolation
 
-        glm::vec2 uv = glm::vec2(glm::atan(normal.z, normal.x), asin(normal.y));
-        uv *= INV_ATAN;
-        uv += 0.5;
+        const float phi = atan2f(normal[0], normal[2]);
+        const float theta = acosf(normal[1]);
+
+#define CMFT_RPI      0.31830988618379067153f
+
+        float uu = (M_PI + phi) * (0.5f / M_PI);
+        float vv = theta * CMFT_RPI;
 
         float r = 0.0f;
         float g = 0.0f;
         float b = 0.0f;
-        map.getPixel(0, uv[0], uv[1], r, g, b);
+        map.getPixel(0, uu, vv, r, g, b);
 
         int px = 0;
         int py = 0;

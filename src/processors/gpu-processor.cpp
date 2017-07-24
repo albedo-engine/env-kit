@@ -80,7 +80,7 @@ const float GPUProcessor::CUBE_VERTICES[] =
 };
 
 const glm::mat4 GPUProcessor::CAM_PROJ(
-  glm::perspective(90.0f, 1.0f, 0.1f, 2.0f)
+  glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 2.0f)
 );
 
 GPUProcessor::GPUProcessor()
@@ -150,15 +150,17 @@ GPUProcessor::computeDiffuseIS(const data::Cubemap& cubemap,
 {
   // Generates a Cubemap GPU-side from a
   // CPU-side Cubemap.
+  const auto& mipmaps = cubemap.getMipmaps();
+  auto& data = mipmaps[0];
+  int cubeSize = cubemap.getWidth();
+
   GLuint cubemapID = 0;
   glGenTextures(1, &cubemapID);
   glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapID);
-  auto& data = cubemap.getMip(0);
   for(GLuint i = 0; i < data.size(); i++)
   {
     glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0,
-                 GL_RGB16F, cubemap.getSize(), cubemap.getSize(),
-                 0, GL_RGB, GL_FLOAT, data[i]);
+                 GL_RGB16F, cubeSize, cubeSize, 0, GL_RGB, GL_FLOAT, data[i]);
   }
   glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -235,7 +237,8 @@ GPUProcessor::computeBRDFLUT()
 data::Cubemap
 GPUProcessor::toCubemap(const data::Equirectangular& map, int size)
 {
-  float* equiplanarData = map.getMip(0)[0];
+  const auto& mipmaps = map.getMipmaps();
+  float* equiplanarData = mipmaps[0];
   // Creates GPU texture storing the
   // HDR equiplanar texture in VRAM.
   GLuint equiplanarTextId = 0;
@@ -300,6 +303,46 @@ GPUProcessor::toCubemap(const data::Equirectangular& map, int size)
 
     faces.push_back(data);
   }
+
+  // DEBUG
+  glm::mat4 projection = glm::perspective(90.0f, 800.0f / 600.0f, 0.1f, 100.0f);
+  glm::mat4 view = CAMERA_VIEWS[3];
+  shader::Shader backgroundShader(shader_source_test_glsl, shader_source_test_frag_glsl);
+  if (!backgroundShader.compile())
+  {
+    std::cerr << "Error compiling Background shader:" << std::endl;
+    backgroundShader.printError();
+  }
+  int w = 800;
+  int h = 600;
+  glfwGetFramebufferSize(window_, &w, &h);
+  glViewport(0, 0, w, h);
+  GLuint testId = backgroundShader.id();
+  float deg = 0.0f;
+  //view = glm::rotate(view, glm::radians(45.0f), glm::vec3(1.0, 0.0, 0.0));
+
+  while (!glfwWindowShouldClose(window_))
+  {
+    //view = glm::rotate(view, glm::radians(deg), glm::vec3(0.0, 1.0, 0.0));
+    deg += 0.00001f;
+    if (deg >= 360.0f) deg = 0.0f;
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    backgroundShader.use();
+    glUniformMatrix4fv(glGetUniformLocation(testId, "uProjection"),
+                       1, GL_FALSE, &projection[0][0]);
+    glUniformMatrix4fv(glGetUniformLocation(testId, "uView"),
+                       1, GL_FALSE, &view[0][0]);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapId);
+    GLint uMapId = glGetUniformLocation(testId, "uMap");
+    glUniform1i(uMapId, 0);
+    glBindVertexArray(cubeVAO_);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glBindVertexArray(0);
+    glfwSwapBuffers(window_);
+  }
+  // END DEBUG
 
   data::Cubemap result = this->generateCubemapFromGLID(cubemapId, size);
 
