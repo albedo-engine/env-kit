@@ -34,70 +34,43 @@ const std::unordered_map<uint, glm::vec3> Cubemap::FACE_TO_VEC =
 ///
 ///    --> U    _____
 ///   |        |     |
-///   v        | +Z  |
+///   v        | +Y  |
 ///   V   _____|_____|_____ _____
 ///      |     |     |     |     |
-///      | -X  | -Y  | +X  | +Y  |
+///      | -X  | +Z  | +X  | -Z  |
 ///      |_____|_____|_____|_____|
 ///            |     |
-///            | -Z  |
+///            | -Y  |
 ///            |_____|
 ///
-const glm::vec3 Cubemap::FACE_UV_VEC[6][2] =
-  {
-    { // +x face
-      glm::fvec3(0.0f,  1.0f, 0.0f), // u -> -z
-      glm::fvec3(0.0f, 0.0f, -1.0f), // v -> -y
-    },
-    { // -x face
-      glm::fvec3(0.0f,  0.0f,  1.0f), // u -> +z
-      glm::fvec3(0.0f, -1.0f,  0.0f), // v -> -y
-    },
-    { // +y face
-      glm::fvec3(1.0f,  0.0f,  0.0f), // u -> +x
-      glm::fvec3(0.0f,  0.0f,  -1.0f), // v -> +z
-    },
-    { // -y face
-      glm::fvec3(-1.0f,  0.0f,  0.0f), // u -> +x
-      glm::fvec3(0.0f,  0.0f, -1.0f), // v -> -z
-    },
-    { // +z face
-      glm::fvec3(1.0f,  0.0f,  0.0f), // u -> +x
-      glm::fvec3(0.0f, -1.0f,  0.0f), // v -> -y
-    },
-    { // -z face
-      glm::fvec3(-1.0f,  0.0f,  0.0f), // u -> -x
-      glm::fvec3( 0.0f, -1.0f,  0.0f), // v -> -y
-    }
-  };
 
-/*const glm::vec3 Cubemap::FACE_UV_VEC[6][2] =
-  {
-    { // +x face
-      glm::fvec3(0.0f, 1.0f, 0.0f),
-      glm::fvec3(0.0f, 0.0f, -1.0f)
-    },
-    { // -x face
-      glm::fvec3(0.0f, -1.0f, 0.0f),
-      glm::fvec3(0.0f, 0.0f, -1.0f)
-    },
-    { // +y face
-      glm::fvec3(-1.0f, 0.0f, 0.0f),
-      glm::fvec3(0.0f, 0.0f, -1.0f)
-    },
-    { // -y face
-      glm::fvec3(1.0f, 0.0f, 0.0f),
-      glm::fvec3(0.0f, 0.0f, -1.0f)
-    },
-    { // +z face
-      glm::fvec3(1.0f, 0.0f, 0.0f),
-      glm::fvec3(0.0f, -1.0f, 0.0f)
-    },
-    { // -z face
-      glm::fvec3(1.0f, 0.0f, 0.0f),
-      glm::fvec3(0.0f, 1.0f, 0.0f)
-    }
-  };*/
+const glm::vec3 Cubemap::FACE_UV_VEC[6][2] =
+{
+  { // +x face
+    glm::vec3({  0.0f,  0.0f, -1.0f }), // u -> -z
+    glm::vec3({  0.0f, -1.0f,  0.0f }), // v -> -y
+  },
+  { // -x face
+    glm::vec3({  0.0f,  0.0f,  1.0f }), // u -> +z
+    glm::vec3({  0.0f, -1.0f,  0.0f }), // v -> -y
+  },
+  { // +y face
+    glm::vec3({  1.0f,  0.0f,  0.0f }), // u -> +x
+    glm::vec3({  0.0f,  0.0f,  1.0f }), // v -> +z
+  },
+  { // -y face
+    glm::vec3({  1.0f,  0.0f,  0.0f }), // u -> +x
+    glm::vec3({  0.0f,  0.0f, -1.0f }), // v -> -z
+  },
+  { // +z face
+    glm::vec3({  1.0f,  0.0f,  0.0f }), // u -> +x
+    glm::vec3({  0.0f, -1.0f,  0.0f }), // v -> -y
+  },
+  { // -z face
+    glm::vec3({ -1.0f,  0.0f,  0.0f }), // u -> -x
+    glm::vec3({  0.0f, -1.0f,  0.0f }) // v -> -y
+  }
+};
 
 Cubemap::Cubemap(std::vector<float*> facesData,
                  int width, int nbComponents)
