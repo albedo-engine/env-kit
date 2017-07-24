@@ -2,15 +2,18 @@
 
 #define _USE_MATH_DEFINES
 #include <cmath>
+#include <cstring>
 
 #include <memory>
 
 #include <string>
 #include <stdexcept>
 
-#include <math/vector.hpp>
 #include <data/cubemap.hpp>
 #include <data/equirectangular.hpp>
+#include <data/unicubemap.hpp>
+
+#include <utils/image-utils.hpp>
 
 namespace albedo
 {
@@ -42,6 +45,11 @@ class AbstractProcessor
 
     virtual data::Equirectangular
     toEquirectangular(const data::Cubemap& map) = 0;
+
+  public:
+    data::UniCubemap
+    toUniCubemap(const data::Cubemap& map);
+
 };
 
 } // process

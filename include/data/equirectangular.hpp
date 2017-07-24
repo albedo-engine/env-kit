@@ -4,7 +4,7 @@
 
 #include <glm/glm.hpp>
 
-#include <data/image.hpp>
+#include <data/2D-image.hpp>
 
 namespace albedo
 {
@@ -15,15 +15,10 @@ namespace tools
 namespace data
 {
 
-class Equirectangular : public Image
+class Equirectangular : public Image2D
 {
   public:
     Equirectangular(float* data, int width, int height, int nbComponents);
-
-  public:
-    void
-    getPixel(uint8_t mipIdx, float u, float v,
-             float& r, float& g, float& b) const;
 };
 
 } // namespace data

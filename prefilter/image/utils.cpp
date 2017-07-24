@@ -10,7 +10,6 @@ namespace image
 {
 
 
-
 } // namespace data
 
 } // namespace tools

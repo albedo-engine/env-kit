@@ -6,6 +6,7 @@
 #include <math/vector.hpp>
 #include <processors/abstract-processor.hpp>
 
+#include <utils/image-utils.hpp>
 #include <utils/singleton.hpp>
 
 namespace albedo

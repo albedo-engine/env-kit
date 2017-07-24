@@ -6,9 +6,9 @@
 #include <vector>
 
 #include <glm/glm.hpp>
+#include <glm/gtc/epsilon.hpp>
 
 #include <data/image.hpp>
-#include <math/vector.hpp>
 
 namespace albedo
 {
@@ -32,9 +32,8 @@ enum CubemapFace
 class Cubemap : public Image
 {
   public:
-    static const math::Vector                           FACE_UV_VEC[6][2];
-    static const glm::fvec3                             FACE_UV_VEC_GLM[6][2];
-    static const std::unordered_map<uint, math::Vector> FACE_TO_VEC;
+    static const glm::fvec3                             FACE_UV_VEC[6][2];
+    static const std::unordered_map<uint, glm::vec3>    FACE_TO_VEC;
     static const std::unordered_map<uint, std::string>  TYPE_TO_STRING;
 
   public:
@@ -42,20 +41,19 @@ class Cubemap : public Image
 
   public:
     static void
-    getFetchCoord(uint8_t faceIdx, const math::Vector& direction,
-                  int width, int& x, int& y);
-
-    static void
     getFetchCoord(uint8_t faceIdx, const glm::vec3& direction,
                   int width, int& x, int& y);
 
   public:
     void
-    getPixel(uint8_t mipIdx, const math::Vector& direction,
+    getPixel(uint8_t mipIdx, const glm::vec3& direction,
              float& r, float& g, float& b, int& x, int& y) const;
 
-    inline int
-    getSize() const { return width_; }
+    inline const std::vector<std::vector<float*>>&
+    getMipmaps() const { return mipmaps_; }
+
+  private:
+  std::vector<std::vector<float*>> mipmaps_;
 
 };
 
