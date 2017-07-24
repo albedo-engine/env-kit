@@ -13,24 +13,36 @@ namespace process
 
 const glm::mat4 GPUProcessor::CAMERA_VIEWS[] =
 {
-  glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f),
-              glm::vec3(1.0f,  0.0f,  0.0f),
-              glm::vec3(0.0f, -1.0f,  0.0f)),
-  glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f),
-              glm::vec3(-1.0f,  0.0f,  0.0f),
-              glm::vec3(0.0f, -1.0f,  0.0f)),
-  glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f),
-              glm::vec3(0.0f,  1.0f,  0.0f),
-              glm::vec3(0.0f,  0.0f,  1.0f)),
-  glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f),
-              glm::vec3(0.0f, -1.0f,  0.0f),
-              glm::vec3(0.0f,  0.0f, -1.0f)),
-  glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f),
-              glm::vec3(0.0f,  0.0f,  1.0f),
-              glm::vec3(0.0f, -1.0f,  0.0f)),
-  glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f),
-              glm::vec3(0.0f,  0.0f, -1.0f),
-              glm::vec3(0.0f, -1.0f,  0.0f))
+  glm::lookAt(
+    glm::vec3(0.0f, 0.0f, 0.0f),
+    glm::vec3( 1.0f,  0.0f,  0.0f),
+    glm::vec3(0.0f, -1.0f,  0.0f)
+  ),
+  glm::lookAt(
+    glm::vec3(0.0f, 0.0f, 0.0f),
+    glm::vec3(-1.0f,  0.0f,  0.0f),
+    glm::vec3(0.0f, -1.0f,  0.0f)
+  ),
+  glm::lookAt(
+    glm::vec3(0.0f, 0.0f, 0.0f),
+    glm::vec3( 0.0f,  1.0f,  0.0f),
+    glm::vec3(0.0f,  0.0f,  1.0f)
+  ),
+  glm::lookAt(
+    glm::vec3(0.0f, 0.0f, 0.0f),
+    glm::vec3( 0.0f, -1.0f,  0.0f),
+    glm::vec3(0.0f,  0.0f, -1.0f)
+  ),
+  glm::lookAt(
+    glm::vec3(0.0f, 0.0f, 0.0f),
+    glm::vec3( 0.0f,  0.0f,  1.0f),
+    glm::vec3(0.0f, -1.0f,  0.0f)
+  ),
+  glm::lookAt(
+    glm::vec3(0.0f, 0.0f, 0.0f),
+    glm::vec3( 0.0f,  0.0f, -1.0f),
+    glm::vec3(0.0f, -1.0f,  0.0f)
+  )
 };
 
 const float GPUProcessor::CUBE_VERTICES[] =
@@ -303,46 +315,6 @@ GPUProcessor::toCubemap(const data::Equirectangular& map, int size)
 
     faces.push_back(data);
   }
-
-  // DEBUG
-  glm::mat4 projection = glm::perspective(90.0f, 800.0f / 600.0f, 0.1f, 100.0f);
-  glm::mat4 view = CAMERA_VIEWS[3];
-  shader::Shader backgroundShader(shader_source_test_glsl, shader_source_test_frag_glsl);
-  if (!backgroundShader.compile())
-  {
-    std::cerr << "Error compiling Background shader:" << std::endl;
-    backgroundShader.printError();
-  }
-  int w = 800;
-  int h = 600;
-  glfwGetFramebufferSize(window_, &w, &h);
-  glViewport(0, 0, w, h);
-  GLuint testId = backgroundShader.id();
-  float deg = 0.0f;
-  //view = glm::rotate(view, glm::radians(45.0f), glm::vec3(1.0, 0.0, 0.0));
-
-  while (!glfwWindowShouldClose(window_))
-  {
-    //view = glm::rotate(view, glm::radians(deg), glm::vec3(0.0, 1.0, 0.0));
-    deg += 0.00001f;
-    if (deg >= 360.0f) deg = 0.0f;
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    backgroundShader.use();
-    glUniformMatrix4fv(glGetUniformLocation(testId, "uProjection"),
-                       1, GL_FALSE, &projection[0][0]);
-    glUniformMatrix4fv(glGetUniformLocation(testId, "uView"),
-                       1, GL_FALSE, &view[0][0]);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapId);
-    GLint uMapId = glGetUniformLocation(testId, "uMap");
-    glUniform1i(uMapId, 0);
-    glBindVertexArray(cubeVAO_);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-    glBindVertexArray(0);
-    glfwSwapBuffers(window_);
-  }
-  // END DEBUG
 
   data::Cubemap result = this->generateCubemapFromGLID(cubemapId, size);
 

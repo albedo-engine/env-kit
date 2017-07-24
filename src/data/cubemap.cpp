@@ -20,17 +20,6 @@ const std::unordered_map<uint, std::string> Cubemap::TYPE_TO_STRING =
   { data::CubemapFace::NEG_Z, "back"   }
 };
 
-const std::unordered_map<uint, glm::vec3> Cubemap::FACE_TO_VEC =
-{
-  { 0, glm::vec3(1.0f, 0.0f, 0.0f)   },
-  { 1, glm::vec3(- 1.0f, 0.0f, 0.0f) },
-  { 2, glm::vec3(0.0f, 1.0f, 0.0f)   },
-  { 3, glm::vec3(0.0f, - 1.0f, 0.0f) },
-  { 4, glm::vec3(0.0f, 0.0f, 1.0f)   },
-  { 5, glm::vec3(0.0f, 0.0f, - 1.0f) },
-};
-
-
 ///
 ///    --> U    _____
 ///   |        |     |
