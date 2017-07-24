@@ -157,6 +157,35 @@ ProgramParser::printHelp()
 }
 
 void
+ProgramParser::printInfo()
+{
+  const auto& src = arguments_["src"];
+  const auto& format = arguments_["type"];
+  const auto& nb = arguments_["samples"];
+
+  bool onGPU = (arguments_.count("nogpu") == 0);
+  bool multithread = (arguments_.count("onethread") == 0);
+
+  std::cout << "Starting environment processing on "
+            << (onGPU ? "GPU" : "CPU")
+            << "... ";
+  if (!onGPU)
+  {
+    std::cout << "("
+              << (multithread ? "multi-threading" : "single-threading")
+              << ")"
+              << std::endl;
+  }
+  else
+    std::cout << std::endl;
+
+  std::cout << "-input file: " << src << std::endl
+            << "-image format: " << format << std::endl
+            << "-number of samples: " << nb << std::endl
+            << std::endl;
+}
+
+void
 ProgramParser::checkRequiredOpt(const char* optKey, const char* message)
 {
   if (arguments_.count(optKey) == 0)

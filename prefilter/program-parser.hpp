@@ -66,6 +66,9 @@ class ProgramParser
     void
     printHelp();
 
+    void
+    printInfo();
+
   private:
     void
     checkRequiredOpt(const char* optKey, const char* message);

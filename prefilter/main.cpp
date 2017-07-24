@@ -12,17 +12,12 @@
 #include <processors/abstract-processor.hpp>
 #include <processors/cpu-processor.hpp>
 #include <processors/gpu-processor.hpp>
+#include <utils/logger.hpp>
 
 #include "program-parser.hpp"
 #include "data/reader-writer.hpp"
 
 using namespace albedo::tools;
-
-typedef std::chrono::high_resolution_clock Time;
-typedef std::chrono::duration<float> fsec;
-
-void
-printInfo();
 
 int main(int argc, char** argv)
 {
@@ -36,6 +31,10 @@ int main(int argc, char** argv)
     programData->printHelp();
     return 0;
   }
+
+  // Prints on stdout information about
+  // the processing that is going to occur
+  programData->printInfo();
 
   // Parses program arguments.
   uint16_t nbSamples = std::atoi(programData->getArg("samples").c_str());
@@ -106,14 +105,16 @@ int main(int argc, char** argv)
 
   processor->init();
 
-  // Starts timer computing time taken by
-  // the irradiance map convolution.
-  auto tStart = Time::now();
-
   if (type == "eqplanar")
   {
+    utils::Logger::instance()->start("Image loading...");
     auto map = readerWriter->loadEquirect(inputPath.c_str(), ext.c_str());
+    utils::Logger::instance()->stop("Image successfully loaded in ");
+
+    utils::Logger::instance()->start("Conversion to Cubemap...");
     auto cubemap = processor->toCubemap(map, 512);
+    utils::Logger::instance()->stop("Image successfully converted in ");
+
     auto unicubemap = processor->toUniCubemap(cubemap);
     readerWriter->save(unicubemap, outputPath.c_str(), "tga");
     //readerWriter->save(cubemap, outputPath.c_str(), "tga");
@@ -122,11 +123,6 @@ int main(int argc, char** argv)
                                                          requestedWidth);
     readerWriter->save(irradianceCubemap, outputPath.c_str(), "tga");*/
   }
-
-  auto tEnd = Time::now();
-
-  fsec fs = tEnd - tStart;
-  std::cout << "duration: " << fs.count() << " seconds.";
 
   return 0;
 }
