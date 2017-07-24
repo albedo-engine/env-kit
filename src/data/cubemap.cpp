@@ -12,22 +12,22 @@ namespace data
 
 const std::unordered_map<uint, std::string> Cubemap::TYPE_TO_STRING =
 {
-  { data::CubemapFace::X,     "right"   },
-  { data::CubemapFace::NEG_X, "left"    },
-  { data::CubemapFace::Y,     "top"   },
-  { data::CubemapFace::NEG_Y, "bottom"    },
+  { data::CubemapFace::X,     "right"  },
+  { data::CubemapFace::NEG_X, "left"   },
+  { data::CubemapFace::Y,     "top"    },
+  { data::CubemapFace::NEG_Y, "bottom" },
   { data::CubemapFace::Z,     "front"  },
-  { data::CubemapFace::NEG_Z,  "back"    }
+  { data::CubemapFace::NEG_Z, "back"   }
 };
 
-const std::unordered_map<uint, math::Vector> Cubemap::FACE_TO_VEC =
+const std::unordered_map<uint, glm::vec3> Cubemap::FACE_TO_VEC =
 {
-  { 0, math::Vector({1.0f, 0.0f, 0.0f})   },
-  { 1, math::Vector({- 1.0f, 0.0f, 0.0f}) },
-  { 2, math::Vector({0.0f, 1.0f, 0.0f})   },
-  { 3, math::Vector({0.0f, - 1.0f, 0.0f}) },
-  { 4, math::Vector({0.0f, 0.0f, 1.0f})   },
-  { 5, math::Vector({0.0f, 0.0f, - 1.0f}) },
+  { 0, glm::vec3(1.0f, 0.0f, 0.0f)   },
+  { 1, glm::vec3(- 1.0f, 0.0f, 0.0f) },
+  { 2, glm::vec3(0.0f, 1.0f, 0.0f)   },
+  { 3, glm::vec3(0.0f, - 1.0f, 0.0f) },
+  { 4, glm::vec3(0.0f, 0.0f, 1.0f)   },
+  { 5, glm::vec3(0.0f, 0.0f, - 1.0f) },
 };
 
 
@@ -43,35 +43,35 @@ const std::unordered_map<uint, math::Vector> Cubemap::FACE_TO_VEC =
 ///            | -Z  |
 ///            |_____|
 ///
-const math::Vector Cubemap::FACE_UV_VEC[6][2] =
-{
-  { // +x face
-    math::Vector({0.0f, 1.0f, 0.0f}),
-    math::Vector({0.0f, 0.0f, -1.0f})
-  },
-  { // -x face
-    math::Vector({0.0f, -1.0f, 0.0f}),
-    math::Vector({0.0f, 0.0f, -1.0f})
-  },
-  { // +y face
-    math::Vector({-1.0f, 0.0f, 0.0f}),
-    math::Vector({0.0f, 0.0f, -1.0f})
-  },
-  { // -y face
-    math::Vector({1.0f, 0.0f, 0.0f}),
-    math::Vector({0.0f, 0.0f, -1.0f})
-  },
-  { // +z face
-    math::Vector({1.0f, 0.0f, 0.0f}),
-    math::Vector({0.0f, -1.0f, 0.0f})
-  },
-  { // -z face
-    math::Vector({1.0f, 0.0f, 0.0f}),
-    math::Vector({0.0f, 1.0f, 0.0f})
-  }
-};
+const glm::vec3 Cubemap::FACE_UV_VEC[6][2] =
+  {
+    { // +x face
+      glm::fvec3(0.0f,  1.0f, 0.0f), // u -> -z
+      glm::fvec3(0.0f, 0.0f, -1.0f), // v -> -y
+    },
+    { // -x face
+      glm::fvec3(0.0f,  0.0f,  1.0f), // u -> +z
+      glm::fvec3(0.0f, -1.0f,  0.0f), // v -> -y
+    },
+    { // +y face
+      glm::fvec3(1.0f,  0.0f,  0.0f), // u -> +x
+      glm::fvec3(0.0f,  0.0f,  -1.0f), // v -> +z
+    },
+    { // -y face
+      glm::fvec3(-1.0f,  0.0f,  0.0f), // u -> +x
+      glm::fvec3(0.0f,  0.0f, -1.0f), // v -> -z
+    },
+    { // +z face
+      glm::fvec3(1.0f,  0.0f,  0.0f), // u -> +x
+      glm::fvec3(0.0f, -1.0f,  0.0f), // v -> -y
+    },
+    { // -z face
+      glm::fvec3(-1.0f,  0.0f,  0.0f), // u -> -x
+      glm::fvec3( 0.0f, -1.0f,  0.0f), // v -> -y
+    }
+  };
 
-const glm::fvec3 Cubemap::FACE_UV_VEC_GLM[6][2] =
+/*const glm::vec3 Cubemap::FACE_UV_VEC[6][2] =
   {
     { // +x face
       glm::fvec3(0.0f, 1.0f, 0.0f),
@@ -97,41 +97,13 @@ const glm::fvec3 Cubemap::FACE_UV_VEC_GLM[6][2] =
       glm::fvec3(1.0f, 0.0f, 0.0f),
       glm::fvec3(0.0f, 1.0f, 0.0f)
     }
-  };
+  };*/
 
 Cubemap::Cubemap(std::vector<float*> facesData,
                  int width, int nbComponents)
-        : Image({facesData}, width, width, nbComponents)
+        : Image(width, width, nbComponents)
+        , mipmaps_{{facesData}}
 { }
-
-void
-Cubemap::getFetchCoord(uint8_t faceIdx, const math::Vector& dir,
-                       int width, int& x, int& y)
-{
-  const float absVec[3] =
-  {
-    fabsf(dir[0]),
-    fabsf(dir[1]),
-    fabsf(dir[2]),
-  };
-  const float max = fmaxf(fmaxf(absVec[0], absVec[1]), absVec[2]);
-  math::Vector normalized = dir / max;
-
-  float u = FACE_UV_VEC[faceIdx][0] * normalized;
-  float v = FACE_UV_VEC[faceIdx][1] * normalized;
-
-  u = (u + 1.0f) * 0.5f;
-  v = (v + 1.0f) * 0.5f;
-
-  x = (int)(u * ((float)width + 1));
-  y = (int)(v * ((float)width + 1));
-
-  x = (x >= width) ? width - 1 : x;
-  x = (x < 0) ? 0 : x;
-
-  y = (y >= width) ? width - 1 : y;
-  y = (y < 0) ? 0 : y;
-}
 
 void
 Cubemap::getFetchCoord(uint8_t faceIdx, const glm::vec3& dir,
@@ -146,8 +118,8 @@ Cubemap::getFetchCoord(uint8_t faceIdx, const glm::vec3& dir,
   const float max = fmaxf(fmaxf(absVec[0], absVec[1]), absVec[2]);
   glm::fvec3 normalized = dir / max;
 
-  float u = glm::dot(FACE_UV_VEC_GLM[faceIdx][0], normalized);
-  float v = glm::dot(FACE_UV_VEC_GLM[faceIdx][1], normalized);
+  float u = glm::dot(FACE_UV_VEC[faceIdx][0], normalized);
+  float v = glm::dot(FACE_UV_VEC[faceIdx][1], normalized);
   u = (u + 1.0f) * 0.5f;
   v = (v + 1.0f) * 0.5f;
 
@@ -162,7 +134,7 @@ Cubemap::getFetchCoord(uint8_t faceIdx, const glm::vec3& dir,
 }
 
 void
-Cubemap::getPixel(uint8_t mipIdx, const math::Vector& dir,
+Cubemap::getPixel(uint8_t mipIdx, const glm::vec3& dir,
                   float& r, float& g, float& b, int& x, int& y) const
 {
   if (mipIdx < 0 || mipIdx >= mipmaps_.size())
@@ -170,7 +142,7 @@ Cubemap::getPixel(uint8_t mipIdx, const math::Vector& dir,
     throw std::invalid_argument("Cubemap: Invalid mipmap index.");
   }
 
-  if (dir.null()) return;
+  if (dir == glm::vec3(0.0f, 0.0f, 0.0f)) return;
 
   const float absVec[3] =
   {
@@ -187,10 +159,10 @@ Cubemap::getPixel(uint8_t mipIdx, const math::Vector& dir,
     faceIdx = (dir[1] >= 0.0f) ? CubemapFace::Y : CubemapFace::NEG_Y;
   else if (max == absVec[2])
     faceIdx = (dir[2] >= 0.0f) ? CubemapFace::Z : CubemapFace::NEG_Z;
-  math::Vector normalized = dir / max;
 
-  float u = FACE_UV_VEC[faceIdx][0] * normalized;
-  float v = FACE_UV_VEC[faceIdx][1] * normalized;
+  auto normalized = dir / max;
+  float u = glm::dot(FACE_UV_VEC[faceIdx][0], normalized);
+  float v = glm::dot(FACE_UV_VEC[faceIdx][1], normalized);
 
   u = (u + 1.0f) * 0.5f;
   v = (v + 1.0f) * 0.5f;

@@ -18,7 +18,7 @@ std::shared_ptr<ReaderWriter> ReaderWriter::instance_ = nullptr;
 
 ReaderWriter::~ReaderWriter()
 {
-  for (auto& img : images_) delete[] img;
+  //for (auto& img : images_) delete[] img;
 }
 
 data::Cubemap
@@ -62,7 +62,7 @@ void
 ReaderWriter::save(const data::Cubemap &cubemap,
                    const char* path, const char* ext) const
 {
-  int size = cubemap.getSize();
+  int size = cubemap.getWidth();
   int nbComp = cubemap.getNbComp();
 
   const auto& mips = cubemap.getMipmaps();
@@ -88,9 +88,25 @@ ReaderWriter::save(const data::Cubemap &cubemap,
       error += path + std::string("'");
       throw std::runtime_error(error);
     }
-    delete[] img;
+    //delete[] img;
   }
 
+}
+
+void
+ReaderWriter::save(const data::Image2D& map,
+                   const char* path, const char* ext) const
+{
+  std::string file = std::string(path) + ".hdr";
+  const float* data = map.getMipmaps()[0];
+  int ret = stbi_write_hdr(file.c_str(), map.getWidth(),
+                           map.getHeight(), map.getNbComp(), data);
+  if (!ret)
+  {
+    std::string error = "ReaderWriter: an error occured while saving'";
+    error += path + std::string("'");
+    throw std::runtime_error(error);
+  }
 }
 
 float*

@@ -19,13 +19,13 @@ data::Cubemap
 CPUProcessor::computeDiffuseIS(const data::Cubemap& cubemap,
                                uint16_t nbSamples, int writeSize)
 {
-  int size = cubemap.getSize();
+  int size = cubemap.getWidth();
   int halfSize = size / 2;
   int nbComp = cubemap.getNbComp();
 
   std::vector<float*> faces;
   for (uint8_t i = 0; i < 6; ++i)
-    faces.push_back(new float[size * size * nbComp]);
+    faces.push_back(utils::createImage(size, size, nbComp));
 
   static const float TWO_PI = (2.0f * M_PI);
   static const float PI_2 = (0.5f * M_PI);
@@ -38,18 +38,12 @@ CPUProcessor::computeDiffuseIS(const data::Cubemap& cubemap,
     {
       for (int v = -halfSize; v < halfSize; ++v)
       {
-        math::Vector normal;
-        if (f == 0 || f == 1)
-          normal = math::Vector((f == 0) ? halfSize : - halfSize, u, v);
-        else if (f == 2 || f == 3)
-          normal = math::Vector(u, (f == 2) ? halfSize : - halfSize, v);
-        else if (f == 4 || f == 5)
-          normal = math::Vector(u, v, (f == 4) ? halfSize : - halfSize);
-        normal.normalize();
+        auto normal = this->faceIDXtoVector(f, halfSize, u, v);
+        normal = glm::normalize(normal);
 
-        math::Vector up(0.0f, 1.0f, 0.0f);
-        math::Vector right = up ^ normal;
-        up = normal ^ right;
+        auto up = glm::vec3(0.0f, 1.0f, 0.0f);
+        auto right = glm::cross(up, normal);
+        up = glm::cross(up, right);
 
         float r = 0.0f;
         float g = 0.0f;
@@ -62,9 +56,9 @@ CPUProcessor::computeDiffuseIS(const data::Cubemap& cubemap,
           // Integrates over the the normal axis
           for (float theta = 0.0f; theta < PI_2; theta += step)
           {
-            math::Vector fetch = right * (std::sin(theta) * std::cos(phi))
-                                 + up * (std::sin(theta) * std::sin(phi))
-                                 + normal * std::cos(theta);
+            auto fetch = right * (float)(sin(theta) * cos(phi))
+                         + up * (float)(sin(theta) * sin(phi))
+                         + normal * (float)cos(theta);
 
             float cR = 0.0f;
             float cG = 0.0f;
@@ -119,7 +113,7 @@ CPUProcessor::toCubemap(const data::Equirectangular& map, int size)
 
   std::vector<float*> faces;
   for (uint8_t i = 0; i < 6; ++i)
-    faces.push_back(new float[size * size * nbComp]);
+    faces.push_back(utils::createImage(size, size, nbComp));
 
   for (uint8_t f = 0; f < 6; ++f)
   {
@@ -129,6 +123,8 @@ CPUProcessor::toCubemap(const data::Equirectangular& map, int size)
       {
         auto normal = faceIDXtoVector(f, halfSize, u, v);
         normal = glm::normalize(normal);
+
+        // TODO: Apply bilinear interpolation
 
         glm::vec2 uv = glm::vec2(glm::atan(normal.z, normal.x), asin(normal.y));
         uv *= INV_ATAN;

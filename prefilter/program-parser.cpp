@@ -59,10 +59,8 @@ ProgramParser::ProgramParser()
               : noError_{true}
               , helpArg_{false}
 {
-  arguments_["samples"].intValue  = 125;
-  arguments_["nogpu"].boolValue   = false;
-  arguments_["onethread"].boolValue = false;
-  arguments_["outsize"].strValue  = "256x256";
+  arguments_["samples"] = "125";
+  arguments_["outsize"] = "256x256";
 }
 
 bool
@@ -86,7 +84,7 @@ ProgramParser::parseArgs(int argc, char **argv)
     // Checks if i-nth argument is a flag option
     if (FLAG_OPT.count(optMapIt->second) != 0)
     {
-      arguments_[optMapIt->second].boolValue = true;
+      arguments_[optMapIt->second] = "";
       continue;
     }
 
@@ -110,10 +108,10 @@ ProgramParser::parseArgs(int argc, char **argv)
                   << std::endl;
         return false;
       }
-      arguments_[optMapIt->second].intValue = atoi(nextArg.c_str());
+      arguments_[optMapIt->second] = nextArg;
       continue;
     }
-    arguments_[optMapIt->second].strValue = nextArg;
+    arguments_[optMapIt->second] = nextArg;
   }
 
   checkRequiredOpt("src", "-s/--src [SOURCE]");

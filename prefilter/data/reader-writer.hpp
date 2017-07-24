@@ -8,6 +8,7 @@
 #include <data/cubemap.hpp>
 #include <data/equirectangular.hpp>
 #include <data/image.hpp>
+#include <data/unicubemap.hpp>
 
 namespace albedo
 {
@@ -41,6 +42,9 @@ class ReaderWriter
 
     void
     save(const data::Cubemap& cubemap, const char* path, const char* ext) const;
+
+    void
+    save(const data::Image2D& map, const char* path, const char* ext) const;
 
   private:
     float*

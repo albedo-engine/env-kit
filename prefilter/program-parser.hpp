@@ -21,8 +21,8 @@ class ProgramParser
       int         intValue;
       bool        boolValue;
 
-      Data() { }
-      ~Data() { }
+      Data() = default;
+      ~Data() = default;
     };
 
   public:
@@ -41,7 +41,7 @@ class ProgramParser
     bool
     parseArgs(int argc, char** args);
 
-    inline Data&
+    inline std::string
     getArg(std::string key)
     {
       if (!arguments_.count(key))
@@ -52,6 +52,12 @@ class ProgramParser
       }
 
       return arguments_[key];
+    }
+
+    inline bool
+    hasFlag(std::string key)
+    {
+      return arguments_.count(key) > 0;
     }
 
     bool
@@ -73,9 +79,9 @@ class ProgramParser
     static const std::unordered_map<std::string, bool>        FLAG_OPT;
 
   private:
-    std::unordered_map<std::string, Data> arguments_;
-    bool                                  noError_;
-    bool                                  helpArg_;
+    std::unordered_map<std::string, std::string>  arguments_;
+    bool                                          noError_;
+    bool                                          helpArg_;
 };
 
 } // namespace tools
