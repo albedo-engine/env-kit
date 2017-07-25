@@ -115,13 +115,12 @@ int main(int argc, char** argv)
     auto cubemap = processor->toCubemap(map, 512);
     utils::Logger::instance()->stop("Image successfully converted in ");
 
-    auto unicubemap = processor->toUniCubemap(cubemap);
-    readerWriter->save(unicubemap, outputPath.c_str(), "tga");
-    //readerWriter->save(cubemap, outputPath.c_str(), "tga");
-    /*auto irradianceCubemap = processor->computeDiffuseIS(cubemap,
+    auto irradianceCubemap = processor->computeDiffuseIS(cubemap,
                                                          nbSamples,
                                                          requestedWidth);
-    readerWriter->save(irradianceCubemap, outputPath.c_str(), "tga");*/
+    auto unicubemap = processor->toUniCubemap(irradianceCubemap);
+    readerWriter->save(unicubemap, outputPath.c_str(), "tga");
+    /*readerWriter->save(irradianceCubemap, outputPath.c_str(), "tga");*/
   }
 
   return 0;
