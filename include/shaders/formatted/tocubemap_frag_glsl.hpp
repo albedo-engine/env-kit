@@ -11,8 +11,6 @@ static const GLchar *shader_source_tocubemap_frag_glsl = {
 "    vec2 uv = vec2(atan(fetch.x, fetch.z), acos(fetch.y));\n"
 "    uv.x = (PI + uv.x) * (0.5f / PI);\n"
 "    uv.y = uv.y * invAtan.y;\n"
-"    //uv *= invAtan;\n"
-"    //uv += 0.5;\n"
 "    fragColor = vec4(texture(uMap, uv).rgb, 1.0);\n"
 "}\n"
 };

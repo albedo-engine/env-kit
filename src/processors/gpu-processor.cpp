@@ -200,6 +200,7 @@ GPUProcessor::computeDiffuseIS(const data::Cubemap& cubemap,
 
   // Binds the cubemap texture in
   // the first texture unit.
+  glViewport(0, 0, size, size);
   glUniformMatrix4fv(uProjId, 1, GL_FALSE, &CAM_PROJ[0][0]);
   glUniform1i(uMapId, 0);
   glActiveTexture(GL_TEXTURE0);
