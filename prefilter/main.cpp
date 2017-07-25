@@ -112,12 +112,15 @@ int main(int argc, char** argv)
     utils::Logger::instance()->stop("Image successfully loaded in ");
 
     utils::Logger::instance()->start("Conversion to Cubemap...");
-    auto cubemap = processor->toCubemap(map, 512);
+    auto cubemap = processor->toCubemap(map, 64);
     utils::Logger::instance()->stop("Image successfully converted in ");
 
+    utils::Logger::instance()->start("Computing irradiance Cubemap...");
     auto irradianceCubemap = processor->computeDiffuseIS(cubemap,
                                                          nbSamples,
                                                          requestedWidth);
+    utils::Logger::instance()->start("Irradiance Cubemap created in ");
+
     auto unicubemap = processor->toUniCubemap(irradianceCubemap);
     readerWriter->save(unicubemap, outputPath.c_str(), "tga");
     /*readerWriter->save(irradianceCubemap, outputPath.c_str(), "tga");*/

@@ -104,7 +104,7 @@ Cubemap::getPixel(uint8_t mipIdx, const glm::vec3& dir,
     throw std::invalid_argument("Cubemap: Invalid mipmap index.");
   }
 
-  if (dir == glm::vec3(0.0f, 0.0f, 0.0f)) return;
+  //if (dir == glm::vec3(0.0f, 0.0f, 0.0f)) return;
 
   const float absVec[3] =
   {
@@ -140,7 +140,7 @@ Cubemap::getPixel(uint8_t mipIdx, const glm::vec3& dir,
 
   const float* data = mipmaps_[mipIdx][faceIdx];
 
-  int idx = (x + y * width_) * 3;
+  int idx = (x + y * width_) * nbComponents_;
   r = data[idx];
   g = data[idx + 1];
   b = data[idx + 2];

@@ -27,8 +27,8 @@ CPUProcessor::computeDiffuseIS(const data::Cubemap& cubemap,
   for (uint8_t i = 0; i < 6; ++i)
     faces.push_back(utils::createImage(size, size, nbComp));
 
-  static const float TWO_PI = (2.0f * M_PI);
-  static const float PI_2 = (0.5f * M_PI);
+  static const float TWO_PI = (2.0f * (float)M_PI);
+  static const float PI_2 = (0.5f * (float)M_PI);
 
   float step = TWO_PI / (float)nbSamples;
 
@@ -43,7 +43,7 @@ CPUProcessor::computeDiffuseIS(const data::Cubemap& cubemap,
 
         auto up = glm::vec3(0.0f, 1.0f, 0.0f);
         auto right = glm::cross(up, normal);
-        up = glm::cross(up, right);
+        up = glm::cross(normal, right);
 
         float r = 0.0f;
         float g = 0.0f;
@@ -56,9 +56,11 @@ CPUProcessor::computeDiffuseIS(const data::Cubemap& cubemap,
           // Integrates over the the normal axis
           for (float theta = 0.0f; theta < PI_2; theta += step)
           {
-            auto fetch = right * (float)(sin(theta) * cos(phi))
-                         + up * (float)(sin(theta) * sin(phi))
-                         + normal * (float)cos(theta);
+            auto tangent = glm::vec3(std::sin(theta) * std::cos(phi),
+                                     std::sin(theta) * std::sin(phi),
+                                     std::cos(theta));
+            auto fetch = (tangent.x * right) + (tangent.y * up)
+                         + tangent.z * normal;
 
             float cR = 0.0f;
             float cG = 0.0f;
@@ -67,16 +69,16 @@ CPUProcessor::computeDiffuseIS(const data::Cubemap& cubemap,
             int fetchY = 0;
             cubemap.getPixel(0, fetch, cR, cG, cB, fetchX, fetchY);
 
-            r += cR * cos(theta) * sin(theta);
-            g += cG * cos(theta) * sin(theta);
-            b += cB * cos(theta) * sin(theta);
+            r += cR * std::cos(theta) * std::sin(theta);
+            g += cG * std::cos(theta) * std::sin(theta);
+            b += cB * std::cos(theta) * std::sin(theta);
 
             nrSamples++;
           }
         }
-        r = M_PI * r * (1.0f / nrSamples);
-        g = M_PI * g * (1.0f / nrSamples);
-        b = M_PI * b * (1.0f / nrSamples);
+        r = (float)M_PI * r * (1.0f / nrSamples);
+        g = (float)M_PI * g * (1.0f / nrSamples);
+        b = (float)M_PI * b * (1.0f / nrSamples);
 
         int px = 0;
         int py = 0;
