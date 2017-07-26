@@ -4,9 +4,8 @@ This project is an open-source library aiming at generating, from a given map, i
 
 ## TODO
 
-* [ ] GPUProcessor: Check irradiance map feeling wrong on GPU
+* [ ] main: Add argument parsing to choose action to perform
 * [ ] CPUProcessor: Add TBB parrallel_for
-* [ ] GPUProcessor: Remove #indef and use std::integral_constant
 * [ ] CPUProcessor: Add bilinear interpolation to Cubemap generation
 * [ ] GPUProcessor: Add specular computation
 * [ ] CPUProcessor: Add specular computation

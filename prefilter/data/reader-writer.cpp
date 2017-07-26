@@ -21,10 +21,45 @@ ReaderWriter::~ReaderWriter()
   //for (auto& img : images_) delete[] img;
 }
 
-data::Cubemap
-ReaderWriter::loadCubemap(char const* path, char const* ext)
+std::shared_ptr<data::Image>
+ReaderWriter::load(char const *path, char const *ext, std::string type)
 {
   int width = 0;
+  int height = 0;
+  int nbComp = 0;
+
+  if (type == "latlong")
+  {
+    float *data = this->load2D(path, ext, width, height, nbComp);
+    return std::make_shared<data::Latlong>(data, width, height, nbComp);
+  }
+  if (type == "cubecross")
+  {
+    float *data = this->load2D(path, ext, width, height, nbComp);
+    return std::make_shared<data::UniCubemap>(data, width, height, nbComp);
+  }
+  if (type == "cubemap")
+  {
+    std::vector<float*> data = this->loadCubemap(path, ext, width, nbComp);
+    return std::make_shared<data::Cubemap>(data, width, nbComp);
+  }
+
+  std::string error = "ReaderWriter: no input type '" + type + "' found";
+  throw std::invalid_argument(error);
+}
+
+float*
+ReaderWriter::load2D(char const *path, char const *ext,
+                     int& width, int& height, int& nbComp)
+{
+  std::string file = path + std::string(".") + ext;
+  return this->loadFloat(file.c_str(), width, height, nbComp);
+}
+
+std::vector<float*>
+ReaderWriter::loadCubemap(char const* path, char const* ext,
+                          int& width, int& nbComp)
+{
   int height = 0;
   int nbComponents = 0;
 
@@ -32,30 +67,21 @@ ReaderWriter::loadCubemap(char const* path, char const* ext)
   std::string file;
   for (size_t i = 0; i < 6; ++i)
   {
-    file = std::string(path)
-           + "-"
+    file = std::string(path) + "-"
            + std::string(data::Cubemap::TYPE_TO_STRING.at(i)) + "." + ext;
 
-    float* data = this->loadFromExt(file.c_str(), ext,
-                                    width, height, nbComponents);
+    float* data = this->loadFloat(file.c_str(), width, height, nbComponents);
+    if (width != height)
+    {
+      std::string error = "ReaderWriter: invalid cubemap face '" + file + "'. ";
+      error += "Faces should be squared";
+      throw std::runtime_error(error);
+    }
 
     faces.push_back(data);
     images_.push_back(data);
   }
-  return data::Cubemap(faces, width, nbComponents);
-}
-
-data::Latlong
-ReaderWriter::loadEquirect(char const *path, char const *ext)
-{
-  int width = 0;
-  int height = 0;
-  int nbComponents = 0;
-  std::string file = path + std::string(".") + ext;
-  float* data = this->loadFromExt(file.c_str(), ext,
-                                  width, height, nbComponents);
-
-  return data::Latlong(data, width, height, nbComponents);
+  return faces;
 }
 
 void
@@ -110,40 +136,6 @@ ReaderWriter::save(const data::Image2D& map,
 }
 
 float*
-ReaderWriter::loadFromExt(char const* fullPath, char const* ext,
-                          int& width, int& height, int& nbComponents)
-{
-  float* data = nullptr;
-  if (strcmp(ext, "hdr") != 0)
-  {
-    unsigned char* raw = this->loadUnsigned(fullPath, width,
-                                            height, nbComponents);
-    data = this->toFloat(raw, width * width, nbComponents);
-    // Free previously loaded image that
-    // is now stored in the data pointer as float.
-    stbi_image_free(raw);
-  }
-  else
-    data = this->loadFloat(fullPath, width, height, nbComponents);
-
-  return data;
-}
-
-unsigned char*
-ReaderWriter::loadUnsigned(char const* path, int& width,
-                           int& height, int& nbComponents)
-{
-  auto* raw = stbi_load(path, &width, &height, &nbComponents, STBI_rgb);
-  if (!raw)
-  {
-    std::string exception = "EnvProcessor: fail to load " + std::string(path);
-    throw std::invalid_argument(exception);
-  }
-
-  return raw;
-}
-
-float*
 ReaderWriter::loadFloat(char const* path, int& width,
                         int& height, int& nbComponents)
 {
@@ -155,34 +147,6 @@ ReaderWriter::loadFloat(char const* path, int& width,
   }
 
   return raw;
-}
-
-float*
-ReaderWriter::toFloat(const unsigned char *data,
-                      int size, int nbComp) const noexcept
-{
-  int nbValues = size * nbComp;
-
-  auto* result = new float[nbValues];
-  for (std::size_t i = 0; i < nbValues; ++i)
-  {
-    result[i] = ((float)data[i]) / 255.0f;
-  }
-  return result;
-}
-
-unsigned char*
-ReaderWriter::toChar(const float *data,
-                     int size, int nbComp) const noexcept
-{
-  int nbValues = size * nbComp;
-
-  auto* result = new unsigned char[nbValues];
-  for (std::size_t i = 0; i < nbValues; ++i)
-  {
-    result[i] = (unsigned char)(data[i] * 255.0f);
-  }
-  return result;
 }
 
 } // namespace data

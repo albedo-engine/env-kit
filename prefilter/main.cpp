@@ -113,26 +113,23 @@ int main(int argc, char** argv)
 
   processor->init();
 
-  if (inputType == "eqplanar")
-  {
-    utils::Logger::instance()->start("Image loading...");
-    auto map = readerWriter->loadEquirect(inputPath.c_str(), ext.c_str());
-    utils::Logger::instance()->stop("Image successfully loaded in ");
+  // Loads src image.
+  utils::Logger::instance()->start("Image loading...");
+  auto entryMap = readerWriter->load(inputPath.c_str(), ext.c_str(), inputType);
+  utils::Logger::instance()->stop("Image successfully loaded in ");
 
-    utils::Logger::instance()->start("Conversion to Cubemap...");
-    auto cubemap = processor->toCubemap(map, 64);
-    utils::Logger::instance()->stop("Image successfully converted in ");
+  utils::Logger::instance()->start("Conversion to Cubemap...");
+  auto cubemap = processor->toCubemap(*entryMap, 64);
+  utils::Logger::instance()->stop("Image successfully converted in ");
 
-    utils::Logger::instance()->start("Computing irradiance Cubemap...");
-    auto irradianceCubemap = processor->computeDiffuseIS(cubemap,
-                                                         nbSamples,
-                                                         requestedWidth);
-    utils::Logger::instance()->start("Irradiance Cubemap created in ");
-
-    auto unicubemap = processor->toUniCubemap(irradianceCubemap);
-    readerWriter->save(unicubemap, outputPath.c_str(), "tga");
-    /*readerWriter->save(irradianceCubemap, outputPath.c_str(), "tga");*/
-  }
+  utils::Logger::instance()->start("Computing irradiance Cubemap...");
+  auto irradianceCubemap = processor->computeDiffuseIS(cubemap,
+                                                       nbSamples,
+                                                       requestedWidth);
+  utils::Logger::instance()->start("Irradiance Cubemap created in ");
+  auto unicubemap = processor->toUniCubemap(irradianceCubemap);
+  readerWriter->save(unicubemap, outputPath.c_str(), "tga");
+  /*readerWriter->save(irradianceCubemap, outputPath.c_str(), "tga");*/
 
   return 0;
 }
