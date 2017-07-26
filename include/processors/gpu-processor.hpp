@@ -1,11 +1,10 @@
 #pragma once
 
 #include <iostream>
+#include <type_traits>
 
-#if ALBEDO_TOOLS_MODE <= ALBEDO_TBB_GPU_MODE
-  #include <GL/glew.h>
-  #include <GLFW/glfw3.h>
-#endif
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -52,19 +51,19 @@ class GPUProcessor : public AbstractProcessor,
     void
     computeBRDFLUT() override;
 
-    data::Cubemap
-    toCubemap(const data::Equirectangular& map, int size);
-
-    data::Equirectangular
-    toEquirectangular(const data::Cubemap& map);
-
-#if ALBEDO_TOOLS_MODE <= ALBEDO_TBB_GPU_MODE
   public:
     inline void
     setWindow(GLFWwindow* window){ window_ = window; }
 
   protected:
     GPUProcessor();
+
+  protected:
+    data::Cubemap
+    toCubemapImpl(const data::Latlong& map, int size) override;
+
+    data::Latlong
+    toEquirectangularImpl(const data::Cubemap& map) override;
 
   private:
     GLuint
@@ -92,7 +91,6 @@ class GPUProcessor : public AbstractProcessor,
     GLuint          cubeVBO_;
 
     GLFWwindow*     window_;
-#endif
 };
 
 } // namespace process

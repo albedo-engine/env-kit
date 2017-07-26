@@ -24,6 +24,10 @@ class UniCubemap : public Image2D
 {
   public:
     UniCubemap(float* data, int width, int height, int nbComponents);
+
+  public:
+    std::string
+    getType() const override;
 };
 
 } // namespace data

@@ -38,22 +38,29 @@ class CPUProcessor : public AbstractProcessor,
     void
     computeBRDFLUT() override;
 
-    data::Cubemap
-    toCubemap(const data::Equirectangular& map, int size) override;
+  public:
+    inline void
+    setMultithreading(bool multithread) { multithread_ = multithread; }
 
-    data::Equirectangular
-    toEquirectangular(const data::Cubemap& map) override;
+  protected:
+    data::Cubemap
+    toCubemapImpl(const data::Latlong& map, int size) override;
+
+    data::Latlong
+    toEquirectangularImpl(const data::Cubemap& map) override;
 
   private:
     glm::vec3
     faceIDXtoVector(uint8_t faceIDX, int distToCenter, int u, int v);
 
   private:
-    CPUProcessor() = default;
+    CPUProcessor();
 
   private:
     static const glm::vec2 INV_ATAN;
 
+  private:
+    bool multithread_;
 };
 
 } // process

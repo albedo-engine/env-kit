@@ -45,7 +45,7 @@ ReaderWriter::loadCubemap(char const* path, char const* ext)
   return data::Cubemap(faces, width, nbComponents);
 }
 
-data::Equirectangular
+data::Latlong
 ReaderWriter::loadEquirect(char const *path, char const *ext)
 {
   int width = 0;
@@ -55,7 +55,7 @@ ReaderWriter::loadEquirect(char const *path, char const *ext)
   float* data = this->loadFromExt(file.c_str(), ext,
                                   width, height, nbComponents);
 
-  return data::Equirectangular(data, width, height, nbComponents);
+  return data::Latlong(data, width, height, nbComponents);
 }
 
 void

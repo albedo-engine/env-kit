@@ -11,6 +11,10 @@ namespace process
 
 const glm::vec2 CPUProcessor::INV_ATAN = glm::vec2(0.1591, 0.3183);
 
+CPUProcessor::CPUProcessor()
+            : multithread_{true}
+{ }
+
 void
 CPUProcessor::init()
 { }
@@ -108,7 +112,7 @@ CPUProcessor::computeBRDFLUT()
 }
 
 data::Cubemap
-CPUProcessor::toCubemap(const data::Equirectangular& map, int size)
+CPUProcessor::toCubemapImpl(const data::Latlong& map, int size)
 {
   int nbComp = map.getNbComp();
   int halfSize = size / 2;
@@ -157,8 +161,8 @@ CPUProcessor::toCubemap(const data::Equirectangular& map, int size)
   return data::Cubemap(faces, size, nbComp);
 }
 
-data::Equirectangular
-CPUProcessor::toEquirectangular(const data::Cubemap& map)
+data::Latlong
+CPUProcessor::toEquirectangularImpl(const data::Cubemap& map)
 {
   throw "Not implemented yet.";
 }

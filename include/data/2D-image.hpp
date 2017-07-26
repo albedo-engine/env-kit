@@ -33,6 +33,10 @@ class Image2D : public Image
     inline const std::vector<float*>&
     getMipmaps() const { return mipmaps_; }
 
+  protected:
+    virtual std::string
+    getType() const = 0;
+
   private:
     void
     getPx(uint8_t mipLvl, int x, int y,

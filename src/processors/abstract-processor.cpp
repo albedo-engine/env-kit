@@ -9,6 +9,24 @@ namespace tools
 namespace process
 {
 
+data::Cubemap
+AbstractProcessor::toCubemap(const data::Image& map, int size)
+{
+  if (map.getType() == "latlong")
+    return toCubemapImpl(dynamic_cast<const data::Latlong&>(map), size);
+
+  throw "Not implemented.";
+}
+
+data::Latlong
+AbstractProcessor::toEquirectangular(const data::Image& map)
+{
+  if (map.getType() == "cubemap")
+    return toEquirectangularImpl(dynamic_cast<const data::Cubemap&>(map));
+
+  throw "Not implemented.";
+}
+
 ///       ________________________
 ///      |      |     |           |
 ///      |      | TOP |           |

@@ -9,8 +9,6 @@ namespace tools
 namespace process
 {
 
-#if ALBEDO_TOOLS_MODE <= ALBEDO_TBB_GPU_MODE
-
 const glm::mat4 GPUProcessor::CAMERA_VIEWS[] =
 {
   glm::lookAt(
@@ -94,6 +92,7 @@ const float GPUProcessor::CUBE_VERTICES[] =
 const glm::mat4 GPUProcessor::CAM_PROJ(
   glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 2.0f)
 );
+
 
 GPUProcessor::GPUProcessor()
             : shaderEquiToCubemap_{shader_source_tocubemap_vert_glsl,
@@ -248,7 +247,7 @@ GPUProcessor::computeBRDFLUT()
 }
 
 data::Cubemap
-GPUProcessor::toCubemap(const data::Equirectangular& map, int size)
+GPUProcessor::toCubemapImpl(const data::Latlong& map, int size)
 {
   const auto& mipmaps = map.getMipmaps();
   float* equiplanarData = mipmaps[0];
@@ -325,8 +324,8 @@ GPUProcessor::toCubemap(const data::Equirectangular& map, int size)
   return result;
 }
 
-data::Equirectangular
-GPUProcessor::toEquirectangular(const data::Cubemap& map)
+data::Latlong
+GPUProcessor::toEquirectangularImpl(const data::Cubemap& map)
 {
   throw "Not implemented.";
 }
@@ -383,45 +382,6 @@ GPUProcessor::getUniformId(GLint shaderId, const char *name)
 
   return id;
 }
-
-#else
-data::Cubemap
-GPUProcessor::computeDiffuseIS(const data::Cubemap& cubemap,
-                               uint16_t nbSamples, int size)
-{
-  throw std::runtime_error("GPUProcessor: you should compile with the "
-                             "appropriate options.");
-}
-
-void
-GPUProcessor::computeSpecularIS()
-{
-  throw std::runtime_error("GPUProcessor: you should compile with the "
-                             "appropriate options.");
-}
-
-void
-GPUProcessor::computeBRDFLUT()
-{
-  throw std::runtime_error("GPUProcessor: you should compile with the "
-                             "appropriate options.");
-}
-
-data::Cubemap
-GPUProcessor::toCubemap(const data::Equirectangular& map, int size)
-{
-  throw std::runtime_error("GPUProcessor: you should compile with the "
-                             "appropriate options.");
-}
-
-data::Equirectangular
-GPUProcessor::toEquirectangular(const data::Cubemap& map)
-{
-  throw std::runtime_error("GPUProcessor: you should compile with the "
-                             "appropriate options.");
-}
-
-#endif
 
 } // process
 

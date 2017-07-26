@@ -104,8 +104,6 @@ Cubemap::getPixel(uint8_t mipIdx, const glm::vec3& dir,
     throw std::invalid_argument("Cubemap: Invalid mipmap index.");
   }
 
-  //if (dir == glm::vec3(0.0f, 0.0f, 0.0f)) return;
-
   const float absVec[3] =
   {
     fabsf(dir[0]),
@@ -144,6 +142,12 @@ Cubemap::getPixel(uint8_t mipIdx, const glm::vec3& dir,
   r = data[idx];
   g = data[idx + 1];
   b = data[idx + 2];
+}
+
+std::string
+Cubemap::getType() const
+{
+  return "cubemap";
 }
 
 } // namespace data

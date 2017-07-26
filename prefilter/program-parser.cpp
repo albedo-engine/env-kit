@@ -11,26 +11,65 @@ std::shared_ptr<ProgramParser> ProgramParser::instance_ = nullptr;
 
 const std::unordered_map<std::string, std::string> ProgramParser::OPT_TO_KEY
 {
-  { "-s", "src" },
-  { "--src", "src" },
-  { "-d", "dst" },
-  { "--dst", "dst" },
-  { "-e", "ext" },
-  { "--ext", "ext" },
-  { "-t", "type" },
-  { "--type", "type" },
-  { "-n", "samples" },
-  { "--nb-samples", "samples" },
-  { "--output-size", "outsize" },
-  { "--no-gpu", "nogpu" },
-  { "--one-thread", "onethread" }
+  {
+    "-s", "src"
+  },
+  {
+    "--src", "src"
+  },
+  {
+    "-d", "dst"
+  },
+  {
+    "--dst", "dst"
+  },
+  {
+    "-e", "ext"
+  },
+  {
+    "--ext", "ext"
+  },
+  {
+    "-n", "samples"
+  },
+  {
+    "--nb-samples", "samples"
+  },
+  {
+    "--input-type", "inputtype"
+  },
+  {
+    "--output-type", "outputtype"
+  },
+  {
+    "--output-size", "outsize"
+  },
+  {
+    "--no-gpu", "nogpu"
+  },
+  {
+    "--one-thread", "onethread"
+  },
+  {
+    "-ir", "irradiance"
+  },
+  {
+    "--irradiance", "irradiance"
+  },
 };
 
 const std::unordered_map<std::string, std::string> ProgramParser::OPT_TO_DESC
 {
-  { "-s", "-s, --src <path>{defines the path of the input texture" },
-  { "-d", "-d, --dst <path>{defines the path of the outputs texture" },
-  { "",
+  {
+    "-s",
+    "-s, --src <path>{defines the path of the input texture"
+  },
+  {
+    "-d",
+    "-d, --dst <path>{defines the path of the outputs texture"
+  },
+  {
+    "",
     "--ext <IMAGE_EXTENSION>{"
     "precise the extension of image that is given in input.\nSupported: "
     "TGA - HDR"
@@ -38,10 +77,18 @@ const std::unordered_map<std::string, std::string> ProgramParser::OPT_TO_DESC
   { "-t",
     "-t, --type <IMAGE_TYPE>{"
       "precise the type of image that is given in input.\nSupported: "
-      "EQPLANAR, CUBEMAP_MULTIFACES, CUBEMAP"
+      "LATLONG, CUBEMAP, CUBECROSS"
   },
-  { "-n", "-n, --nb-samples <N>{definesthe number of samples to compute "
-          "the irradiance map. Default: 125" }
+  {
+    "-ot",
+    "--output-type <IMAGE_TYPE>{defines the type of image use for output."
+    "\nSupported: CUBEMAP, CUBECROSS"
+  },
+  {
+    "-n",
+      "-n, --nb-samples <N>{defines the number of samples to compute "
+          "the irradiance map. Default: 125"
+  }
 };
 
 const std::unordered_map<std::string, bool> ProgramParser::NUMERICAL_OPT
@@ -116,7 +163,7 @@ ProgramParser::parseArgs(int argc, char **argv)
 
   checkRequiredOpt("src", "-s/--src [SOURCE]");
   checkRequiredOpt("dst", "-d/--dst [DESTINATION]");
-  checkRequiredOpt("type", "-t/--type [IMAGE_TYPE]");
+  checkRequiredOpt("inputtype", "--input-type [IMAGE_TYPE]");
   checkRequiredOpt("ext", "--ext [IMAGE_EXTENSION]");
 
   return noError_;
@@ -163,7 +210,11 @@ ProgramParser::printInfo()
   const auto& format = arguments_["type"];
   const auto& nb = arguments_["samples"];
 
+#if ALBEDO_TOOLS_MODE <= ALBEDO_TBB_GPU_MODE
   bool onGPU = (arguments_.count("nogpu") == 0);
+#else
+  bool onGPU = false;
+#endif
   bool multithread = (arguments_.count("onethread") == 0);
 
   std::cout << "Starting environment processing on "
@@ -179,9 +230,9 @@ ProgramParser::printInfo()
   else
     std::cout << std::endl;
 
-  std::cout << "-input file: " << src << std::endl
-            << "-image format: " << format << std::endl
-            << "-number of samples: " << nb << std::endl
+  std::cout << "-input file: " << src << "\n"
+            << "-image format: " << format << "\n"
+            << "-number of samples: " << nb << "\n"
             << std::endl;
 }
 

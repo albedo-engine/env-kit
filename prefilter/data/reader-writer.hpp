@@ -6,7 +6,7 @@
 #include <iostream>
 
 #include <data/cubemap.hpp>
-#include <data/equirectangular.hpp>
+#include <data/latlong.hpp>
 #include <data/image.hpp>
 #include <data/unicubemap.hpp>
 
@@ -34,7 +34,7 @@ class ReaderWriter
     ~ReaderWriter();
 
   public:
-    data::Equirectangular
+    data::Latlong
     loadEquirect(char const* path, char const* ext);
 
     data::Cubemap

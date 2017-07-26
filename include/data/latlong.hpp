@@ -15,10 +15,14 @@ namespace tools
 namespace data
 {
 
-class Equirectangular : public Image2D
+class Latlong : public Image2D
 {
   public:
-    Equirectangular(float* data, int width, int height, int nbComponents);
+    Latlong(float* data, int width, int height, int nbComponents);
+
+  public:
+    virtual std::string
+    getType() const;
 };
 
 } // namespace data
