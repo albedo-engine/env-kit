@@ -34,11 +34,8 @@ class ReaderWriter
     ~ReaderWriter();
 
   public:
-    data::Latlong
-    loadEquirect(char const* path, char const* ext);
-
-    data::Cubemap
-    loadCubemap(char const* path, char const* ext);
+    std::shared_ptr<data::Image>
+    load(char const* path, char const* ext, std::string type);
 
     void
     save(const data::Cubemap& cubemap, const char* path, const char* ext) const;
@@ -48,20 +45,14 @@ class ReaderWriter
 
   private:
     float*
-    loadFromExt(char const* fullPath, char const* ext,
-                int& width, int& height, int& nbComponents);
+    load2D(char const* path, char const* ext,
+           int& width, int& height, int& nbComp);
 
-    unsigned char*
-    loadUnsigned(char const* path, int& width, int& height, int& nbComponents);
+    std::vector<float*>
+    loadCubemap(char const* path, char const* ext, int& width, int& nbComp);
 
     float*
     loadFloat(char const* path, int& width, int& height, int& nbComponents);
-
-    float*
-    toFloat(const unsigned char* data, int size, int nbComp) const noexcept;
-
-    unsigned char*
-    toChar(const float* data, int size, int nbComp) const noexcept;
 
   private:
     static std::shared_ptr<ReaderWriter> instance_;
