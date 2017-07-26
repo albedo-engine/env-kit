@@ -155,15 +155,15 @@ GPUProcessor::init()
   glBindVertexArray(0);
 }
 
-data::Cubemap
-GPUProcessor::computeDiffuseIS(const data::Cubemap& cubemap,
+AbstractProcessor::CubemapPtr
+GPUProcessor::computeDiffuseIS(const AbstractProcessor::CubemapPtr& cubemap,
                                uint16_t nbSamples, int size)
 {
   // Generates a Cubemap GPU-side from a
   // CPU-side Cubemap.
-  const auto& mipmaps = cubemap.getMipmaps();
+  const auto& mipmaps = cubemap->getMipmaps();
   auto& data = mipmaps[0];
-  int cubeSize = cubemap.getWidth();
+  int cubeSize = cubemap->getWidth();
 
   GLuint cubemapID = 0;
   glGenTextures(1, &cubemapID);
@@ -246,25 +246,34 @@ GPUProcessor::computeBRDFLUT()
   throw "Not implemented.";
 }
 
-data::Cubemap
-GPUProcessor::toCubemapImpl(const data::Latlong& map, int size)
+// Implementation of conversion to Cubemap
+AbstractProcessor::CubemapPtr
+GPUProcessor::toCubemapImpl(const AbstractProcessor::LatlongPtr& map,
+                            int w, int h)
 {
-  const auto& mipmaps = map.getMipmaps();
+  if (w != h)
+  {
+    std::string error = "CPUProcessor: conversion to cubemap can not be ";
+    error += "done with different dimensions.";
+    throw std::invalid_argument(error);
+  }
+
+  const auto& mipmaps = map->getMipmaps();
   float* equiplanarData = mipmaps[0];
   // Creates GPU texture storing the
   // HDR equiplanar texture in VRAM.
   GLuint equiplanarTextId = 0;
   glGenTextures(1, &equiplanarTextId);
   glBindTexture(GL_TEXTURE_2D, equiplanarTextId);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, map.getWidth(),
-               map.getHeight(), 0,GL_RGB, GL_FLOAT, equiplanarData);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, map->getWidth(),
+               map->getHeight(), 0,GL_RGB, GL_FLOAT, equiplanarData);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glBindTexture(GL_TEXTURE_2D, 0);
 
-  GLuint cubemapId = this->generateGLCubemap(size, size);
+  GLuint cubemapId = this->generateGLCubemap(w, h);
 
   // Binds the shader writing from equiplanar to a cubemap.
   // Sends required uniforms, such as equirectangular map,
@@ -282,10 +291,10 @@ GPUProcessor::toCubemapImpl(const data::Latlong& map, int size)
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, equiplanarTextId);
 
-  glViewport(0, 0, size, size);
+  glViewport(0, 0, w, h);
   glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
   glBindRenderbuffer(GL_RENDERBUFFER, rbo_);
-  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, size, size);
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, w, h);
   for (unsigned int i = 0; i < 6; ++i)
   {
     GLint uViewId = glGetUniformLocation(shaderId, "uView");
@@ -306,7 +315,7 @@ GPUProcessor::toCubemapImpl(const data::Latlong& map, int size)
   std::vector<float*> faces;
   for (auto i = 0; i < 6; i++)
   {
-    auto* data = new float[size * size * 3];
+    auto* data = new float[w * h * 3];
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapId);
     glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0,
@@ -316,7 +325,7 @@ GPUProcessor::toCubemapImpl(const data::Latlong& map, int size)
     faces.push_back(data);
   }
 
-  data::Cubemap result = this->generateCubemapFromGLID(cubemapId, size);
+  auto result = this->generateCubemapFromGLID(cubemapId, w);
 
   glDeleteTextures(1, &cubemapId);
   glDeleteTextures(1, &equiplanarTextId);
@@ -324,14 +333,23 @@ GPUProcessor::toCubemapImpl(const data::Latlong& map, int size)
   return result;
 }
 
-data::Latlong
-GPUProcessor::toEquirectangularImpl(const data::Cubemap& map)
+// Implementation of conversion to Latlong
+AbstractProcessor::LatlongPtr
+GPUProcessor::toLatlongImpl(const AbstractProcessor::CubemapPtr& map,
+                            int w, int h)
 {
-  throw "Not implemented.";
+  throw "Not implemented";
+}
+
+AbstractProcessor::LatlongPtr
+GPUProcessor::toLatlongImpl(const AbstractProcessor::CubecrossPtr& map,
+                            int w, int h)
+{
+  throw "Not implemented";
 }
 
 GLuint
-GPUProcessor::generateGLCubemap(GLsizei width, GLsizei height)
+GPUProcessor::generateGLCubemap(GLsizei width, GLsizei height) const
 {
   // Creates the Cubemap stored on the GPU.
   unsigned int mapId;
@@ -351,8 +369,8 @@ GPUProcessor::generateGLCubemap(GLsizei width, GLsizei height)
   return mapId;
 }
 
-data::Cubemap
-GPUProcessor::generateCubemapFromGLID(GLuint texID, int size)
+AbstractProcessor::CubemapPtr
+GPUProcessor::generateCubemapFromGLID(GLuint texID, int size) const
 {
   std::vector<float*> faces;
   for (auto i = 0; i < 6; i++)
@@ -366,11 +384,11 @@ GPUProcessor::generateCubemapFromGLID(GLuint texID, int size)
 
     faces.push_back(data);
   }
-  return data::Cubemap(faces, size, 3);
+  return std::make_shared<data::Cubemap>(faces, size, 3);
 }
 
 GLint
-GPUProcessor::getUniformId(GLint shaderId, const char *name)
+GPUProcessor::getUniformId(GLint shaderId, const char *name) const
 {
   GLint id = glGetUniformLocation(shaderId, name);
   if (id < 0)

@@ -41,8 +41,8 @@ class GPUProcessor : public AbstractProcessor,
     void
     init() override;
 
-    data::Cubemap
-    computeDiffuseIS(const data::Cubemap& cubemap,
+    AbstractProcessor::CubemapPtr
+    computeDiffuseIS(const AbstractProcessor::CubemapPtr& cubemap,
                      uint16_t nbSamples, int size) override;
 
     void
@@ -59,21 +59,29 @@ class GPUProcessor : public AbstractProcessor,
     GPUProcessor();
 
   protected:
-    data::Cubemap
-    toCubemapImpl(const data::Latlong& map, int size) override;
+    // Implementation of conversion to Cubemap
+    AbstractProcessor::CubemapPtr
+    toCubemapImpl(const AbstractProcessor::LatlongPtr& map,
+                  int w, int h) override;
 
-    data::Latlong
-    toEquirectangularImpl(const data::Cubemap& map) override;
+    // Implementation of conversion to Latlong
+    AbstractProcessor::LatlongPtr
+    toLatlongImpl(const AbstractProcessor::CubemapPtr& map,
+                  int w, int h) override;
+
+    AbstractProcessor::LatlongPtr
+    toLatlongImpl(const AbstractProcessor::CubecrossPtr& map,
+                  int w, int h) override;
 
   private:
     GLuint
-    generateGLCubemap(GLsizei width, GLsizei height);
+    generateGLCubemap(GLsizei width, GLsizei height) const;
 
-    data::Cubemap
-    generateCubemapFromGLID(GLuint texID, int size);
+    AbstractProcessor::CubemapPtr
+    generateCubemapFromGLID(GLuint texID, int size) const;
 
     GLint
-    getUniformId(GLint shaderId, const char* name);
+    getUniformId(GLint shaderId, const char* name) const;
 
   private:
     static const glm::mat4  CAMERA_VIEWS[6];

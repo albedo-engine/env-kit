@@ -36,7 +36,7 @@ ReaderWriter::load(char const *path, char const *ext, std::string type)
   if (type == "cubecross")
   {
     float *data = this->load2D(path, ext, width, height, nbComp);
-    return std::make_shared<data::UniCubemap>(data, width, height, nbComp);
+    return std::make_shared<data::Cubecross>(data, width, height, nbComp);
   }
   if (type == "cubemap")
   {
@@ -46,6 +46,78 @@ ReaderWriter::load(char const *path, char const *ext, std::string type)
 
   std::string error = "ReaderWriter: no input type '" + type + "' found";
   throw std::invalid_argument(error);
+}
+
+void ReaderWriter::save(const data::Image& map,
+                        std::string path, std::string ext) const
+{
+  std::string type = map.getType();
+  if (type == "latlong" || type == "cubecross")
+  {
+    const auto& image2D = static_cast<const data::Image2D&>(map);
+    this->save(image2D, path, ext);
+    return;
+  }
+  if (type == "cubemap")
+  {
+    const auto& cubemap = static_cast<const data::Cubemap&>(map);
+    this->save(cubemap, path, ext);
+    return;
+  }
+
+  std::string error = "ReaderWriter: no output type '" + type + "' found";
+  throw std::invalid_argument(error);
+}
+
+void
+ReaderWriter::save(const data::Cubemap &cubemap,
+                   std::string path, std::string ext) const
+{
+  int size = cubemap.getWidth();
+  int nbComp = cubemap.getNbComp();
+
+  const auto& mips = cubemap.getMipmaps();
+  auto& mip = mips[0];
+
+  for (unsigned int i = 0; i < mip.size(); ++i)
+  {
+    // Creates the full location where to store the image.
+    std::string file = std::string(path) + "-";
+    //file += data::Cubemap::TYPE_TO_STRING.at(i) + "." + ext;
+    file += data::Cubemap::TYPE_TO_STRING.at(i) + ".hdr";
+
+    // Converts back float data to unsigned char
+    //unsigned char* img = this->toChar(mip[i], size * size, cubemap.getNbComp
+      //());
+    float* img = mip[i];
+
+    //int ret = stbi_write_tga(file.c_str(), size, size, nbComp, img);
+    int ret = stbi_write_hdr(file.c_str(), size, size, nbComp, img);
+    if (!ret)
+    {
+      std::string error = "ReaderWriter: an error occured while saving'";
+      error += path + std::string("'");
+      throw std::runtime_error(error);
+    }
+    //delete[] img;
+  }
+
+}
+
+void
+ReaderWriter::save(const data::Image2D& map,
+                   std::string path, std::string ext) const
+{
+  std::string file = std::string(path) + ".hdr";
+  const float* data = map.getMipmaps()[0];
+  int ret = stbi_write_hdr(file.c_str(), map.getWidth(),
+                           map.getHeight(), map.getNbComp(), data);
+  if (!ret)
+  {
+    std::string error = "ReaderWriter: an error occured while saving'";
+    error += path + std::string("'");
+    throw std::runtime_error(error);
+  }
 }
 
 float*
@@ -82,57 +154,6 @@ ReaderWriter::loadCubemap(char const* path, char const* ext,
     images_.push_back(data);
   }
   return faces;
-}
-
-void
-ReaderWriter::save(const data::Cubemap &cubemap,
-                   const char* path, const char* ext) const
-{
-  int size = cubemap.getWidth();
-  int nbComp = cubemap.getNbComp();
-
-  const auto& mips = cubemap.getMipmaps();
-  auto& mip = mips[0];
-
-  for (unsigned int i = 0; i < mip.size(); ++i)
-  {
-    // Creates the full location where to store the image.
-    std::string file = std::string(path) + "-";
-    //file += data::Cubemap::TYPE_TO_STRING.at(i) + "." + ext;
-    file += data::Cubemap::TYPE_TO_STRING.at(i) + ".hdr";
-
-    // Converts back float data to unsigned char
-    //unsigned char* img = this->toChar(mip[i], size * size, cubemap.getNbComp
-      //());
-    float* img = mip[i];
-
-    //int ret = stbi_write_tga(file.c_str(), size, size, nbComp, img);
-    int ret = stbi_write_hdr(file.c_str(), size, size, nbComp, img);
-    if (!ret)
-    {
-      std::string error = "ReaderWriter: an error occured while saving'";
-      error += path + std::string("'");
-      throw std::runtime_error(error);
-    }
-    //delete[] img;
-  }
-
-}
-
-void
-ReaderWriter::save(const data::Image2D& map,
-                   const char* path, const char* ext) const
-{
-  std::string file = std::string(path) + ".hdr";
-  const float* data = map.getMipmaps()[0];
-  int ret = stbi_write_hdr(file.c_str(), map.getWidth(),
-                           map.getHeight(), map.getNbComp(), data);
-  if (!ret)
-  {
-    std::string error = "ReaderWriter: an error occured while saving'";
-    error += path + std::string("'");
-    throw std::runtime_error(error);
-  }
 }
 
 float*

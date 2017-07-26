@@ -13,7 +13,7 @@
 
 #include <data/cubemap.hpp>
 #include <data/latlong.hpp>
-#include <data/unicubemap.hpp>
+#include <data/cubecross.hpp>
 
 #include <utils/image-utils.hpp>
 
@@ -28,12 +28,18 @@ namespace process
 
 class AbstractProcessor
 {
+  protected:
+    typedef std::shared_ptr<data::Image>      ImagePtr;
+    typedef std::shared_ptr<data::Cubemap>    CubemapPtr;
+    typedef std::shared_ptr<data::Latlong>    LatlongPtr;
+    typedef std::shared_ptr<data::Cubecross>  CubecrossPtr;
+
   public:
     virtual void
     init() = 0;
 
-    virtual data::Cubemap
-    computeDiffuseIS(const data::Cubemap& cubemap,
+    virtual CubemapPtr
+    computeDiffuseIS(const CubemapPtr& cubemap,
                      uint16_t nbSamples, int size) = 0;
 
     virtual void
@@ -43,21 +49,31 @@ class AbstractProcessor
     computeBRDFLUT() = 0;
 
   public:
-    data::Cubemap
-    toCubemap(const data::Image& map, int size);
-
-    data::Latlong
-    toEquirectangular(const data::Image& map);
-
-    data::UniCubemap
-    toUniCubemap(const data::Cubemap& map);
+    std::shared_ptr<data::Image>
+    to(const std::shared_ptr<data::Image> map,
+       std::string type, int width, int height);
 
   protected:
-    virtual data::Cubemap
-    toCubemapImpl(const data::Latlong& map, int size) = 0;
+    // Implementation of conversion to Cubemap
+    virtual CubemapPtr
+    toCubemapImpl(const LatlongPtr& map, int w, int h) = 0;
 
-    virtual data::Latlong
-    toEquirectangularImpl(const data::Cubemap& map) = 0;
+    // Implementation of conversion to Latlong
+    virtual LatlongPtr
+    toLatlongImpl(const CubemapPtr& map, int w, int h) = 0;
+
+    virtual LatlongPtr
+    toLatlongImpl(const CubecrossPtr& map, int w, int h) = 0;
+
+  private:
+    // Implementation of conversion to Cubemap
+    CubemapPtr
+    toCubemapImpl(const CubecrossPtr& map, int w, int h);
+
+    // Implementation of conversion to Cubecross
+    CubecrossPtr
+    toCubecrossImpl(const CubemapPtr& map, int w, int h);
+
 };
 
 } // process

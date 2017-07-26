@@ -20,10 +20,10 @@ namespace tools
 namespace data
 {
 
-class UniCubemap : public Image2D
+class Cubecross : public Image2D
 {
   public:
-    UniCubemap(float* data, int width, int height, int nbComponents);
+  Cubecross(float* data, int width, int height, int nbComponents);
 
   public:
     std::string
