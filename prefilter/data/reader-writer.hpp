@@ -8,7 +8,7 @@
 #include <data/cubemap.hpp>
 #include <data/latlong.hpp>
 #include <data/image.hpp>
-#include <data/unicubemap.hpp>
+#include <data/cubecross.hpp>
 
 namespace albedo
 {
@@ -38,10 +38,15 @@ class ReaderWriter
     load(char const* path, char const* ext, std::string type);
 
     void
-    save(const data::Cubemap& cubemap, const char* path, const char* ext) const;
+    save(const data::Image& map, std::string path, std::string ext) const;
 
     void
-    save(const data::Image2D& map, const char* path, const char* ext) const;
+    save(const data::Cubemap& cubemap,
+         std::string path, std::string ext) const;
+
+    void
+    save(const data::Image2D& map,
+         std::string path, std::string ext) const;
 
   private:
     float*

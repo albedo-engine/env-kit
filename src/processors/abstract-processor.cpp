@@ -9,22 +9,56 @@ namespace tools
 namespace process
 {
 
-data::Cubemap
-AbstractProcessor::toCubemap(const data::Image& map, int size)
+std::shared_ptr<data::Image>
+AbstractProcessor::to(const std::shared_ptr<data::Image> map,
+                      std::string toType, int w, int h)
 {
-  if (map.getType() == "latlong")
-    return toCubemapImpl(dynamic_cast<const data::Latlong&>(map), size);
+  std::string fromType = map->getType();
+  if (toType == fromType) return map;
 
-  throw "Not implemented.";
-}
+  std::string error = "Processor: missing convertion implementation ";
+  error += "'" + fromType + "' ";
 
-data::Latlong
-AbstractProcessor::toEquirectangular(const data::Image& map)
-{
-  if (map.getType() == "cubemap")
-    return toEquirectangularImpl(dynamic_cast<const data::Cubemap&>(map));
+  if (toType == "cubemap")
+  {
+    if (fromType == "latlong")
+    {
+      const auto& mapCast = std::static_pointer_cast<data::Latlong>(map);
+      return this->toCubemapImpl(mapCast, w, h);
+    }
+    error += "to 'cubemap'";
+    throw std::invalid_argument(error);
+  }
 
-  throw "Not implemented.";
+  if (toType == "latlong")
+  {
+    if (fromType == "cubemap")
+    {
+      const auto& mapCast = std::static_pointer_cast<data::Cubemap>(map);
+      return this->toLatlongImpl(mapCast, w, h);
+    }
+    error += "to 'latlong'";
+    throw std::invalid_argument(error);
+  }
+
+  if (toType == "cubecross")
+  {
+    if (fromType == "cubemap")
+    {
+      const auto& mapCast = std::static_pointer_cast<data::Cubemap>(map);
+      return this->toCubecrossImpl(mapCast, w, h);
+    }
+    if (fromType == "latlong")
+    {
+      const auto& mapCast = std::static_pointer_cast<data::Latlong>(map);
+      auto cubemap = this->toCubemapImpl(mapCast, w, h);
+      return this->toCubecrossImpl(cubemap, w, h);
+    }
+    error += "to 'cubecross'";
+    throw std::invalid_argument(error);
+  }
+
+  throw std::invalid_argument("Processor: type '" + toType + "' not supported");
 }
 
 ///       ________________________
@@ -38,15 +72,16 @@ AbstractProcessor::toEquirectangular(const data::Image& map)
 ///      |      | BTM |           |
 ///      |______|_____|___________|
 ///
-data::UniCubemap
-AbstractProcessor::toUniCubemap(const data::Cubemap &map)
+AbstractProcessor::CubecrossPtr
+AbstractProcessor::toCubecrossImpl(const AbstractProcessor::CubemapPtr &map,
+                                   int w, int h)
 {
-  int faceSize = map.getWidth();
+  int faceSize = map->getWidth();
   int height = 3 * faceSize;
   int width = 4 * faceSize;
-  int nbComp = map.getNbComp();
+  int nbComp = map->getNbComp();
 
-  const auto& mipmaps = map.getMipmaps();
+  const auto& mipmaps = map->getMipmaps();
 
   // TODO: Handles all the mip levels
   float* data = utils::createImage(width, height, nbComp);
@@ -84,7 +119,14 @@ AbstractProcessor::toUniCubemap(const data::Cubemap &map)
                   faceSize, faceSize, width, nbComp, leftFaceData, data);
 
 
-  return data::UniCubemap(data, width, height, nbComp);
+  return std::make_shared<data::Cubecross>(data, width, height, nbComp);
+}
+
+AbstractProcessor::CubemapPtr
+AbstractProcessor::toCubemapImpl(const AbstractProcessor::CubecrossPtr& map,
+                                 int w, int h)
+{
+  throw "Not implemented.";
 }
 
 } // process

@@ -37,7 +37,7 @@ class Logger : public Singleton<Logger>
       auto end = std::chrono::high_resolution_clock::now();
       auto elapsed = end - begin_;
       auto seconds = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed);
-      std::cout << message << (seconds.count() * 0.001f) << 's' << std::endl;
+      std::cout << message << (seconds.count() * 0.001f) << "s\n" << std::endl;
     }
 
   private:

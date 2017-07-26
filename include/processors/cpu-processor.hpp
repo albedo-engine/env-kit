@@ -28,8 +28,8 @@ class CPUProcessor : public AbstractProcessor,
     void
     init() override;
 
-    data::Cubemap
-    computeDiffuseIS(const data::Cubemap& cubemap,
+    AbstractProcessor::CubemapPtr
+    computeDiffuseIS(const AbstractProcessor::CubemapPtr& cubemap,
                      uint16_t nbSamples, int writeSize) override;
 
     void
@@ -43,15 +43,23 @@ class CPUProcessor : public AbstractProcessor,
     setMultithreading(bool multithread) { multithread_ = multithread; }
 
   protected:
-    data::Cubemap
-    toCubemapImpl(const data::Latlong& map, int size) override;
+    // Implementation of conversion to Cubemap
+    AbstractProcessor::CubemapPtr
+    toCubemapImpl(const AbstractProcessor::LatlongPtr& map,
+                  int w, int h) override;
 
-    data::Latlong
-    toEquirectangularImpl(const data::Cubemap& map) override;
+    // Implementation of conversion to Latlong
+    AbstractProcessor::LatlongPtr
+    toLatlongImpl(const AbstractProcessor::CubemapPtr& map,
+                  int w, int h) override;
+
+    AbstractProcessor::LatlongPtr
+    toLatlongImpl(const AbstractProcessor::CubecrossPtr& map,
+                  int w, int h) override;
 
   private:
     glm::vec3
-    faceIDXtoVector(uint8_t faceIDX, int distToCenter, int u, int v);
+    faceIDXtoVector(uint8_t faceIDX, int distToCenter, int u, int v) const;
 
   private:
     CPUProcessor();

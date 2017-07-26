@@ -1,4 +1,4 @@
-#include <data/unicubemap.hpp>
+#include <data/cubecross.hpp>
 
 namespace albedo
 {
@@ -9,12 +9,12 @@ namespace tools
 namespace data
 {
 
-UniCubemap::UniCubemap(float* data, int width, int height, int nbComponents)
+Cubecross::Cubecross(float* data, int width, int height, int nbComponents)
           : Image2D(data, width, height, nbComponents)
 { }
 
 std::string
-UniCubemap::getType() const
+Cubecross::getType() const
 {
   return "cubecross";
 }

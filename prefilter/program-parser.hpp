@@ -60,6 +60,9 @@ class ProgramParser
       return arguments_.count(key) > 0;
     }
 
+    void
+    extractSize(std::string key, int& width, int& height);
+
     bool
     helpRequested();
 

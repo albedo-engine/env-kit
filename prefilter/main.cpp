@@ -41,7 +41,6 @@ int main(int argc, char** argv)
   programData->printInfo();
 
   // Parses program arguments.
-  uint16_t nbSamples = std::atoi(programData->getArg("samples").c_str());
   auto inputPath = programData->getArg("src");
   auto outputPath = programData->getArg("dst");
 
@@ -52,21 +51,15 @@ int main(int argc, char** argv)
   std::transform(inputType.begin(), inputType.end(),
                  inputType.begin(), ::tolower);
 
-  auto outputSizeStr = programData->getArg("outsize");
-  auto splitIdx = outputSizeStr.find('x');
-  if (splitIdx == std::string::npos)
-  {
-    std::cerr << "Invalid value: '" << outputSizeStr << "'"
-              << " should be of the type UINTxUINT."
-              << std::endl;
-    return 1;
-  }
-
-  int requestedWidth = std::stoi(outputSizeStr.substr(0, splitIdx));
-  int requestedHeight = std::stoi(outputSizeStr.substr(splitIdx + 1));
+  auto outputType = programData->getArg("outputtype");
+  std::transform(inputType.begin(), inputType.end(),
+                 inputType.begin(), ::tolower);
 
   bool nogpu = programData->hasFlag("nogpu");
   bool nothread = programData->hasFlag("onethread");
+  bool computeIrradiance = programData->hasFlag("irradiance");
+  bool computeSpecular = programData->hasFlag("specular");
+  bool convert = programData->hasFlag("convert");
 
   // Creates object in charge of loading and saving textures.
   auto readerWriter = albedo::tools::data::ReaderWriter::instance();
@@ -108,7 +101,6 @@ int main(int argc, char** argv)
   auto& cpuprocessor = process::CPUProcessor::instance();
   cpuprocessor->setMultithreading(!nothread);
   processor = cpuprocessor;
-
 #endif
 
   processor->init();
@@ -118,18 +110,48 @@ int main(int argc, char** argv)
   auto entryMap = readerWriter->load(inputPath.c_str(), ext.c_str(), inputType);
   utils::Logger::instance()->stop("Image successfully loaded in ");
 
-  utils::Logger::instance()->start("Conversion to Cubemap...");
-  auto cubemap = processor->toCubemap(*entryMap, 64);
-  utils::Logger::instance()->stop("Image successfully converted in ");
+  if (computeIrradiance)
+  {
+    int outWidth = 0;
+    int outHeight = 0;
+    programData->extractSize("irradiance", outWidth, outHeight);
+    uint16_t nbSamples = std::atoi(programData->getArg("samples").c_str());
 
-  utils::Logger::instance()->start("Computing irradiance Cubemap...");
-  auto irradianceCubemap = processor->computeDiffuseIS(cubemap,
-                                                       nbSamples,
-                                                       requestedWidth);
-  utils::Logger::instance()->start("Irradiance Cubemap created in ");
-  auto unicubemap = processor->toUniCubemap(irradianceCubemap);
-  readerWriter->save(unicubemap, outputPath.c_str(), "tga");
-  /*readerWriter->save(irradianceCubemap, outputPath.c_str(), "tga");*/
+    utils::Logger::instance()->start("Converting input map to Cubemap...");
+    auto cubemapImage = processor->to(entryMap, "cubemap", 512, 512);
+    auto cubemap = std::static_pointer_cast<data::Cubemap>(cubemapImage);
+    utils::Logger::instance()->stop("Input map sucessfully converted in ");
+
+    utils::Logger::instance()->start("Computing irradiance Cubemap...");
+    auto irradianceCubemap = processor->computeDiffuseIS(cubemap,
+                                                         nbSamples,
+                                                         outWidth);
+    utils::Logger::instance()->stop("Irradiance Cubemap created in ");
+
+    utils::Logger::instance()->start("Irradiance map to output type...");
+    auto mapTosave = processor->to(irradianceCubemap, outputType,
+                                   outWidth, outHeight);
+    utils::Logger::instance()->stop("Map successfully converted in ");
+
+    utils::Logger::instance()->start("Saving Irradiance map to output type...");
+    readerWriter->save(*mapTosave, outputPath + "-irradiance", "tga");
+    utils::Logger::instance()->stop("Irradiance Map successfully saved in ");
+  }
+
+  if (convert)
+  {
+    int outWidth = 0;
+    int outHeight = 0;
+    programData->extractSize("convert", outWidth, outHeight);
+
+    utils::Logger::instance()->start("Converting input map...");
+    auto out = processor->to(entryMap, outputType, outWidth, outHeight);
+    utils::Logger::instance()->stop("Map successfully converted in ");
+
+    utils::Logger::instance()->start("Saving input map to output type...");
+    readerWriter->save(*out, outputPath + "-converted", "tga");
+    utils::Logger::instance()->stop("Input Map successfully saved in ");
+  }
 
   return 0;
 }

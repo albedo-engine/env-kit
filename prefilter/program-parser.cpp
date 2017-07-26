@@ -42,20 +42,20 @@ const std::unordered_map<std::string, std::string> ProgramParser::OPT_TO_KEY
     "--output-type", "outputtype"
   },
   {
-    "--output-size", "outsize"
-  },
-  {
     "--no-gpu", "nogpu"
   },
   {
     "--one-thread", "onethread"
   },
   {
-    "-ir", "irradiance"
-  },
-  {
     "--irradiance", "irradiance"
   },
+  {
+    "--specular", "specular"
+  },
+  {
+    "--convert", "convert"
+  }
 };
 
 const std::unordered_map<std::string, std::string> ProgramParser::OPT_TO_DESC
@@ -74,9 +74,9 @@ const std::unordered_map<std::string, std::string> ProgramParser::OPT_TO_DESC
     "precise the extension of image that is given in input.\nSupported: "
     "TGA - HDR"
   },
-  { "-t",
-    "-t, --type <IMAGE_TYPE>{"
-      "precise the type of image that is given in input.\nSupported: "
+  { "",
+    "--input-type <IMAGE_TYPE>{"
+      "defines the type of image that is given in input.\nSupported: "
       "LATLONG, CUBEMAP, CUBECROSS"
   },
   {
@@ -86,9 +86,21 @@ const std::unordered_map<std::string, std::string> ProgramParser::OPT_TO_DESC
   },
   {
     "-n",
-      "-n, --nb-samples <N>{defines the number of samples to compute "
-          "the irradiance map. Default: 125"
-  }
+    "-n, --nb-samples <N>{defines the number of samples to compute "
+      "the irradiance map. Default: 125"
+  },
+  {
+    "",
+    "--irradiance <INTxINT>{computes irradiance map saved as dst-irradiance.ext"
+  },
+  {
+    "",
+    "--specular <INTxINT>{computes specular map saved as dst-specular.ext"
+  },
+  {
+    "",
+    "--convert <INTxINT>{saves the map convert to output-type as dst-converted.ext"
+  },
 };
 
 const std::unordered_map<std::string, bool> ProgramParser::NUMERICAL_OPT
@@ -99,7 +111,7 @@ const std::unordered_map<std::string, bool> ProgramParser::NUMERICAL_OPT
 const std::unordered_map<std::string, bool> ProgramParser::FLAG_OPT
 {
   { "nogpu", false },
-  { "onethread", false },
+  { "onethread", false }
 };
 
 ProgramParser::ProgramParser()
@@ -107,7 +119,6 @@ ProgramParser::ProgramParser()
               , helpArg_{false}
 {
   arguments_["samples"] = "125";
-  arguments_["outsize"] = "256x256";
 }
 
 bool
@@ -164,9 +175,33 @@ ProgramParser::parseArgs(int argc, char **argv)
   checkRequiredOpt("src", "-s/--src [SOURCE]");
   checkRequiredOpt("dst", "-d/--dst [DESTINATION]");
   checkRequiredOpt("inputtype", "--input-type [IMAGE_TYPE]");
+  checkRequiredOpt("outputtype", "--output-type [IMAGE_TYPE]");
   checkRequiredOpt("ext", "--ext [IMAGE_EXTENSION]");
 
   return noError_;
+}
+
+void
+ProgramParser::extractSize(std::string key, int& width, int& height)
+{
+  if (arguments_.count(key) == 0)
+  {
+    std::string error = "ProgramParser: extractSize: '" + key;
+    error = "' is not an argument";
+    throw std::invalid_argument(error);
+  }
+
+  auto outputSizeStr = arguments_[key];
+  auto splitIdx = outputSizeStr.find('x');
+  if (splitIdx == std::string::npos)
+  {
+    std::string error = "ProgramParser: extractSize: invalid value: '";
+    error += outputSizeStr + "' should be of the type UINTxUINT.";
+    throw std::invalid_argument(error);
+  }
+
+  width = std::stoi(outputSizeStr.substr(0, splitIdx));
+  height = std::stoi(outputSizeStr.substr(splitIdx + 1));
 }
 
 bool
@@ -210,6 +245,9 @@ ProgramParser::printInfo()
   const auto& format = arguments_["type"];
   const auto& nb = arguments_["samples"];
 
+  auto intermSize = arguments_.count("convert") != 0 ?
+                    arguments_["convert"] : "512x512";
+
 #if ALBEDO_TOOLS_MODE <= ALBEDO_TBB_GPU_MODE
   bool onGPU = (arguments_.count("nogpu") == 0);
 #else
@@ -233,7 +271,14 @@ ProgramParser::printInfo()
   std::cout << "-input file: " << src << "\n"
             << "-image format: " << format << "\n"
             << "-number of samples: " << nb << "\n"
-            << std::endl;
+            << "-intermediary cubemap size: " << intermSize << "\n";
+
+  if (arguments_.count("irradiance") != 0)
+    std::cout << "-irradiance size: " << arguments_["irradiance"];
+  if (arguments_.count("specular") != 0)
+    std::cout << "-specular size: " << arguments_["irradiance"];
+
+  std::cout << std::endl;
 }
 
 void
