@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 namespace albedo
 {
 
@@ -23,6 +25,9 @@ class Image
 
     inline int
     getHeight() const { return height_; }
+
+    virtual std::string
+    getType() const = 0;
 
   protected:
     int width_;

@@ -4,13 +4,15 @@
 #include <cmath>
 #include <cstring>
 
+#include <functional>
 #include <memory>
+#include <unordered_map>
 
 #include <string>
 #include <stdexcept>
 
 #include <data/cubemap.hpp>
-#include <data/equirectangular.hpp>
+#include <data/latlong.hpp>
 #include <data/unicubemap.hpp>
 
 #include <utils/image-utils.hpp>
@@ -40,16 +42,22 @@ class AbstractProcessor
     virtual void
     computeBRDFLUT() = 0;
 
-    virtual data::Cubemap
-    toCubemap(const data::Equirectangular& map, int size) = 0;
-
-    virtual data::Equirectangular
-    toEquirectangular(const data::Cubemap& map) = 0;
-
   public:
+    data::Cubemap
+    toCubemap(const data::Image& map, int size);
+
+    data::Latlong
+    toEquirectangular(const data::Image& map);
+
     data::UniCubemap
     toUniCubemap(const data::Cubemap& map);
 
+  protected:
+    virtual data::Cubemap
+    toCubemapImpl(const data::Latlong& map, int size) = 0;
+
+    virtual data::Latlong
+    toEquirectangularImpl(const data::Cubemap& map) = 0;
 };
 
 } // process

@@ -52,6 +52,9 @@ class Cubemap : public Image
     inline const std::vector<std::vector<float*>>&
     getMipmaps() const { return mipmaps_; }
 
+    std::string
+    getType() const override;
+
   private:
   std::vector<std::vector<float*>> mipmaps_;
 
