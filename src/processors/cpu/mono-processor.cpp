@@ -21,7 +21,6 @@ MonoProcessor::computeDiffuseIS(const AbstractProcessor::CubemapPtr &cubemap,
                                 uint16_t nbSamples, int writeSize)
 {
   int size = writeSize;
-  int halfSize = size / 2;
   int nbComp = cubemap->getNbComp();
 
   std::vector<float*> faces;
@@ -31,15 +30,7 @@ MonoProcessor::computeDiffuseIS(const AbstractProcessor::CubemapPtr &cubemap,
   float step = CPUProcessor::TWO_PI / (float)nbSamples;
 
   for (uint8_t f = 0; f < 6; ++f)
-  {
-    for (int u = -halfSize; u < halfSize; ++u)
-    {
-      for (int v = -halfSize; v < halfSize; ++v)
-      {
-        this->computePixelIrradiance(cubemap, f, u, v, size, step, faces[f]);
-      }
-    }
-  }
+    this->computePixelIrradiance(cubemap, f, size, step, faces[f]);
 
   return std::make_shared<data::Cubemap>(faces, size, nbComp);
 }
@@ -75,13 +66,7 @@ MonoProcessor::toCubemapImpl(const AbstractProcessor::LatlongPtr& map,
     faces.push_back(utils::createImage(w, h, nbComp));
 
   for (uint8_t f = 0; f < 6; ++f)
-  {
-    for (int u = -halfSize; u < halfSize; ++u)
-    {
-      for (int v = -halfSize; v < halfSize; ++v)
-        this->computePixelFromLatlong(map, f, u, v, w, faces[f]);
-    }
-  }
+    this->computePixelFromLatlong(map, f, w, faces[f]);
 
   return std::make_shared<data::Cubemap>(faces, w, nbComp);
 }

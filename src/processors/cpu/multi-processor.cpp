@@ -21,7 +21,6 @@ MultiProcessor::computeDiffuseIS(const AbstractProcessor::CubemapPtr& cubemap,
                                  uint16_t nbSamples, int writeSize)
 {
   int size = writeSize;
-  int halfSize = size / 2;
   int nbComp = cubemap->getNbComp();
 
   std::vector<float*> faces;
@@ -33,11 +32,7 @@ MultiProcessor::computeDiffuseIS(const AbstractProcessor::CubemapPtr& cubemap,
   tbb::parallel_for(size_t(0), size_t(6), [&](size_t f)
   {
     auto fID = (uint8_t)f;
-    for (int u = -halfSize; u < halfSize; ++u)
-    {
-      for (int v = -halfSize; v < halfSize; ++v)
-        this->computePixelIrradiance(cubemap, fID, u, v, size, step, faces[f]);
-    }
+    this->computePixelIrradiance(cubemap, fID, size, step, faces[f]);
   });
   return std::make_shared<data::Cubemap>(faces, size, nbComp);
 }
@@ -66,7 +61,6 @@ MultiProcessor::toCubemapImpl(const AbstractProcessor::LatlongPtr& map,
   }
 
   int nbComp = map->getNbComp();
-  int halfSize = w / 2;
 
   std::vector<float*> faces;
   for (uint8_t i = 0; i < 6; ++i)
@@ -75,11 +69,7 @@ MultiProcessor::toCubemapImpl(const AbstractProcessor::LatlongPtr& map,
   tbb::parallel_for(size_t(0), size_t(6), [&](size_t f)
   {
     auto fID = (uint8_t)f;
-    for (int u = -halfSize; u < halfSize; ++u)
-    {
-      for (int v = -halfSize; v < halfSize; ++v)
-        this->computePixelFromLatlong(map, fID, u, v, w, faces[f]);
-    }
+    this->computePixelFromLatlong(map, fID, w, faces[f]);
   });
   return std::make_shared<data::Cubemap>(faces, w, nbComp);
 }
