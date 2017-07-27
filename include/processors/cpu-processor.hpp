@@ -57,6 +57,17 @@ class CPUProcessor : public AbstractProcessor,
     toLatlongImpl(const AbstractProcessor::CubecrossPtr& map,
                   int w, int h) override;
 
+  protected:
+    void
+    computePixelIrradiance(const AbstractProcessor::CubemapPtr& cubemap,
+                           uint8_t fID, int u, int v, int outSize, float step,
+                           float* toData);
+
+    void
+    computePixelFromLatlong(const AbstractProcessor::LatlongPtr& map,
+                            uint8_t fID, int u, int v, int outSize,
+                            float* toData);
+
   private:
     glm::vec3
     faceIDXtoVector(uint8_t faceIDX, int distToCenter, int u, int v) const;
@@ -65,7 +76,9 @@ class CPUProcessor : public AbstractProcessor,
     CPUProcessor();
 
   private:
-    static const glm::vec2 INV_ATAN;
+    static const glm::vec2  INV_ATAN;
+    static const float      TWO_PI;
+    static const float      PI_2;
 
   private:
     bool multithread_;
