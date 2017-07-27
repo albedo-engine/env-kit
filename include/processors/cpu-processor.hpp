@@ -18,46 +18,42 @@ namespace tools
 namespace process
 {
 
-class CPUProcessor : public AbstractProcessor,
-                     public Singleton<CPUProcessor>
+class CPUProcessor : public AbstractProcessor
 {
   public:
-    friend class Singleton<CPUProcessor>;
-
-  public:
+    virtual
     void
-    init() override;
+    init() = 0;
 
+    virtual
     AbstractProcessor::CubemapPtr
     computeDiffuseIS(const AbstractProcessor::CubemapPtr& cubemap,
-                     uint16_t nbSamples, int writeSize) override;
+                     uint16_t nbSamples, int writeSize) = 0;
 
+    virtual
     void
-    computeSpecularIS() override;
+    computeSpecularIS() = 0;
 
+    virtual
     void
-    computeBRDFLUT() override;
-
-  public:
-    inline void
-    setMultithreading(bool multithread) { multithread_ = multithread; }
+    computeBRDFLUT() = 0;
 
   protected:
     // Implementation of conversion to Cubemap
-    AbstractProcessor::CubemapPtr
-    toCubemapImpl(const AbstractProcessor::LatlongPtr& map,
-                  int w, int h) override;
+    virtual AbstractProcessor::CubemapPtr
+    toCubemapImpl(const AbstractProcessor::LatlongPtr& map, int w, int h) = 0;
 
     // Implementation of conversion to Latlong
-    AbstractProcessor::LatlongPtr
-    toLatlongImpl(const AbstractProcessor::CubemapPtr& map,
-                  int w, int h) override;
+    virtual AbstractProcessor::LatlongPtr
+    toLatlongImpl(const AbstractProcessor::CubemapPtr& map, int w, int h) = 0;
 
-    AbstractProcessor::LatlongPtr
-    toLatlongImpl(const AbstractProcessor::CubecrossPtr& map,
-                  int w, int h) override;
+    virtual AbstractProcessor::LatlongPtr
+    toLatlongImpl(const AbstractProcessor::CubecrossPtr& map, int w, int h) = 0;
 
   protected:
+    glm::vec3
+    faceIDXtoVector(uint8_t faceIDX, int distToCenter, int u, int v) const;
+
     void
     computePixelIrradiance(const AbstractProcessor::CubemapPtr& cubemap,
                            uint8_t fID, int u, int v, int outSize, float step,
@@ -68,20 +64,10 @@ class CPUProcessor : public AbstractProcessor,
                             uint8_t fID, int u, int v, int outSize,
                             float* toData);
 
-  private:
-    glm::vec3
-    faceIDXtoVector(uint8_t faceIDX, int distToCenter, int u, int v) const;
-
-  private:
-    CPUProcessor();
-
-  private:
+  protected:
     static const glm::vec2  INV_ATAN;
     static const float      TWO_PI;
     static const float      PI_2;
-
-  private:
-    bool multithread_;
 };
 
 } // process

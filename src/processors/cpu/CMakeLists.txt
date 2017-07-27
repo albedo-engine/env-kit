@@ -1,0 +1,11 @@
+IF ((ALBEDO_COMPILE_MODE STREQUAL TBB_ONLY)
+        OR (ALBEDO_COMPILE_MODE STREQUAL ALL))
+    set(ALBEDO_SOURCES ${ALBEDO_SOURCES}
+        ${CMAKE_CURRENT_SOURCE_DIR}/mono-processor.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/multi-processor.cpp
+        PARENT_SCOPE)
+ELSE()
+    set(ALBEDO_SOURCES ${ALBEDO_SOURCES}
+            ${CMAKE_CURRENT_SOURCE_DIR}/mono-processor.cpp
+            PARENT_SCOPE)
+ENDIF()
