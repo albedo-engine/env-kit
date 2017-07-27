@@ -8,15 +8,19 @@
   #include <GLFW/glfw3.h>
 #endif
 
-#include <data/cubemap.hpp>
 #include <processors/abstract-processor.hpp>
 #include <processors/cpu-processor.hpp>
 
 #if ALBEDO_TOOLS_MODE <= ALBEDO_TBB_GPU_MODE
-#include <processors/gpu-processor.hpp>
+  #include <processors/gpu-processor.hpp>
 #endif
 
 #include <utils/logger.hpp>
+#include <processors/cpu/mono-processor.hpp>
+#if (ALBEDO_TOOLS_MODES == ALBEDO_TBB_GPU_MODE)\
+    || (ALBEDO_TOOLS_MODES == ALBEDO_TBB_GPU_MODE)
+  #include <processors/cpu/multi-processor.hpp>
+#endif
 
 #include "program-parser.hpp"
 #include "data/reader-writer.hpp"
@@ -96,11 +100,17 @@ int main(int argc, char** argv)
     processor = gpuprocessor;
   }
   else
-    processor = process::CPUProcessor::instance();
+  {
+    if (nothread)
+      processor = process::cpu::MonoProcessor::instance();
+    else
+      processor = process::cpu::MultiProcessor::instance();
+  }
+#elif ALBEDO_TOOLS_MODE == ALBEDO_TBB_ONLY_MODE
+  processor = nothread ? process::cpu::MonoProcessor::instance()
+                         : process::cpu::MultiProcessor::instance();
 #else
-  auto& cpuprocessor = process::CPUProcessor::instance();
-  cpuprocessor->setMultithreading(!nothread);
-  processor = cpuprocessor;
+  processor = process::cpu::MonoProcessor::instance();
 #endif
 
   processor->init();
