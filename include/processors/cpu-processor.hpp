@@ -56,13 +56,11 @@ class CPUProcessor : public AbstractProcessor
 
     void
     computePixelIrradiance(const AbstractProcessor::CubemapPtr& cubemap,
-                           uint8_t fID, int u, int v, int outSize, float step,
-                           float* toData);
+                           uint8_t fID, int outSize, float step, float* toData);
 
     void
     computePixelFromLatlong(const AbstractProcessor::LatlongPtr& map,
-                            uint8_t fID, int u, int v, int outSize,
-                            float* toData);
+                            uint8_t fID, int outSize, float* toData);
 
   protected:
     static const glm::vec2  INV_ATAN;
