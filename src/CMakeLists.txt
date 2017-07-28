@@ -16,7 +16,7 @@ add_library(albedo_envtools SHARED ${ALBEDO_SOURCES})
 # It is possible to only use one CPU thread, without library,
 # to compute the maps, but it makes the whole pipeline really slow.
 
-message(STATUS "toto " ${ALBEDO_COMPILE_MODE})
+message(STATUS "Selected compilation mode: " ${ALBEDO_COMPILE_MODE})
 
 IF ((ALBEDO_COMPILE_MODE STREQUAL ALL) AND
         TBB_FOUND AND GLEW_FOUND AND glfw3_FOUND)

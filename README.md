@@ -42,18 +42,17 @@ $ cmake -DCMAKE_BUILD_TYPE=Release ..
 $ make
 ```
 
-#### Builds the library/binary without dependencies
-If you do not want to use the GPU, or even the CPU cpu parallelism, you can build the library / binary accordingly.
-You can set the value `-DALBEDO_TOOLS_MODE`to one of the following:
-* NONE -> Only CPU monothreading is used and no dependency is needed
-* ALL -> GPU and CPU multithreading
-* TBB_ONLY -> Only CPU multithreading
-* GPU_ONLY -> Only GPU
+#### Builds the library / binary without dependencies
+If you do not want to use the GPU, or even the CPU parallelism, you can build the library / binary accordingly.
+You can set the value `-D_ALBEDO_TOOLS_MODE`to one of the following:
+* NONE -> Only CPU monothreading
+* ALL -> GPU and CPU multithreading (requires [TBB](https://www.threadingbuildingblocks.org/), [GLEW](http://glew.sourceforge.net/), and [GLFW](http://www.glfw.org/))
+* TBB_ONLY -> Only CPU multithreading (requires [TBB](https://www.threadingbuildingblocks.org/))
+* GPU_ONLY -> Only GPU (requires [GLEW](http://glew.sourceforge.net/) and [GLFW](http://www.glfw.org/))
 
 For instance, if you only plan to use the GPU:
 ```sh
-$ cmake -DCMAKE_BUILD_TYPE=Release .. -DALBEDO_TOOLS_MODE=GPU_ONLY
-$ make
+$ cmake -DCMAKE_BUILD_TYPE=Release .. -D_ALBEDO_TOOLS_MODE=GPU_ONLY
 ```
 
 ## Binary Usage
@@ -67,3 +66,4 @@ $ make
 * [ ] Library: Track every memory leaks
 * [ ] Library: Implements PIMPL
 * [ ] Binary: Improve command line info
+* [ ] Library: Add documentation

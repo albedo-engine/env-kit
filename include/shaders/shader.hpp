@@ -2,7 +2,8 @@
 
 #include <iostream>
 
-#if ALBEDO_TOOLS_MODE <= ALBEDO_TBB_GPU_MODE
+#if ALBEDO_TOOLS_MODE <= ALBEDO_TBB_GPU_MODE || ALBEDO_TOOLS_MODE ==\
+ALBEDO_GPU_ONLY
   #include <GL/glew.h>
   #include <GL/gl.h>
 #endif
