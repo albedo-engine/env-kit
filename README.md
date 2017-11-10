@@ -66,4 +66,6 @@ $ cmake -DCMAKE_BUILD_TYPE=Release .. -D_ALBEDO_TOOLS_MODE=GPU_ONLY
 * [ ] Library: Track every memory leaks
 * [ ] Library: Implements PIMPL
 * [ ] Binary: Improve command line info
+* [ ] Fix help not printing everything
 * [ ] Library: Add documentation
+* [ ] Add spherical harmonics generation
