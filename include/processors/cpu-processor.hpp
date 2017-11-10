@@ -3,7 +3,6 @@
 #include <glm/glm.hpp>
 
 #include <data/cubemap.hpp>
-#include <math/vector.hpp>
 #include <processors/abstract-processor.hpp>
 
 #include <utils/image-utils.hpp>

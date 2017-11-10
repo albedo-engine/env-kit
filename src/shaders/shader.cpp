@@ -9,7 +9,7 @@ namespace tools
 namespace shader
 {
 
-#if ALBEDO_TOOLS_MODE <= ALBEDO_TBB_GPU_MODE
+#if ALBEDO_TOOLS_MODE <= ALBEDO_TBB_ONLY_MODE
 Shader::Shader(const GLchar* vertexShader, const GLchar* fragmentShader)
       : vertexShader_{vertexShader}
       , fragmentShader_{fragmentShader}

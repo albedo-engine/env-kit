@@ -18,7 +18,7 @@ set(BIN_SOURCE_FILES prefilter/main.cpp)
 # work according to chosen dependencies, we have to set a
 # definition for -D_ALBEDO_TOOLS_MODE.
 set(ALBEDO_COMPILE_MODE ${_ALBEDO_TOOLS_MODE})
-IF (NOT DEFINED ALBEDO_TOOLS_MODE)
+IF (NOT DEFINED ALBEDO_COMPILE_MODE)
     set(ALBEDO_COMPILE_MODE ALL)
 ENDIF()
 
@@ -42,6 +42,4 @@ include_directories(
 
 add_subdirectory(src)
 add_subdirectory(prefilter)
-add_subdirectory(tests)
-
 

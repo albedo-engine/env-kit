@@ -248,7 +248,7 @@ ProgramParser::printInfo()
   auto intermSize = arguments_.count("convert") != 0 ?
                     arguments_["convert"] : "512x512";
 
-#if ALBEDO_TOOLS_MODE <= ALBEDO_TBB_GPU_MODE
+#if ALBEDO_TOOLS_MODE <= ALBEDO_TBB_ONLY_MODE
   bool onGPU = (arguments_.count("nogpu") == 0);
 #else
   bool onGPU = false;

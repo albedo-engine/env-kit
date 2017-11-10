@@ -2,12 +2,10 @@
 
 #include <iostream>
 
-#if ALBEDO_TOOLS_MODE <= ALBEDO_TBB_GPU_MODE || ALBEDO_TOOLS_MODE ==\
-ALBEDO_GPU_ONLY
+#if ALBEDO_TOOLS_MODE <= ALBEDO_TBB_ONLY_MODE
   #include <GL/glew.h>
   #include <GL/gl.h>
 #endif
-
 
 namespace albedo
 {
@@ -20,7 +18,7 @@ namespace shader
 
 class Shader
 {
-#if ALBEDO_TOOLS_MODE <= ALBEDO_TBB_GPU_MODE
+#if ALBEDO_TOOLS_MODE <= ALBEDO_TBB_ONLY_MODE
   public:
     Shader(const GLchar* vertexShader, const GLchar* fragmentShader);
 

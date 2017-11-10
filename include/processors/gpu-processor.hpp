@@ -10,7 +10,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <data/cubemap.hpp>
-#include <math/vector.hpp>
 #include <processors/abstract-processor.hpp>
 
 #include <shaders/formatted/irradiance_vert_glsl.hpp>
@@ -106,3 +105,4 @@ class GPUProcessor : public AbstractProcessor,
 } // namespace tools
 
 } // namespace albedo
+

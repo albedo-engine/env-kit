@@ -3,7 +3,7 @@
 #include <chrono>
 #include <iostream>
 
-#if ALBEDO_TOOLS_MODE <= ALBEDO_TBB_GPU_MODE
+#if ALBEDO_TOOLS_MODE <= ALBEDO_TBB_ONLY_MODE
   #include <GL/glew.h>
   #include <GLFW/glfw3.h>
 #endif
@@ -11,14 +11,14 @@
 #include <processors/abstract-processor.hpp>
 #include <processors/cpu-processor.hpp>
 
-#if ALBEDO_TOOLS_MODE <= ALBEDO_TBB_GPU_MODE
+#if ALBEDO_TOOLS_MODE <= ALBEDO_TBB_ONLY_MODE
   #include <processors/gpu-processor.hpp>
 #endif
 
 #include <utils/logger.hpp>
 #include <processors/cpu/mono-processor.hpp>
 #if (ALBEDO_TOOLS_MODES == ALBEDO_TBB_GPU_MODE)\
-    || (ALBEDO_TOOLS_MODES == ALBEDO_TBB_GPU_MODE)
+    || (ALBEDO_TOOLS_MODES == ALBEDO_TBB_ONLY_MODE)
   #include <processors/cpu/multi-processor.hpp>
 #endif
 
@@ -70,7 +70,7 @@ int main(int argc, char** argv)
 
   // Creates processor in charge of computing the texture maps.
   std::shared_ptr<process::AbstractProcessor> processor = nullptr;
-#if ALBEDO_TOOLS_MODE <= ALBEDO_TBB_GPU_MODE
+#if ALBEDO_TOOLS_MODE == ALBEDO_TBB_GPU_MODE
   if (!nogpu)
   {
     // Opens a glfw window to run OpenGL in a context.
@@ -106,6 +106,32 @@ int main(int argc, char** argv)
     else
       processor = process::cpu::MultiProcessor::instance();
   }
+#elif ALBEDO_TOOLS_MODE == ALBEDO_GPU_ONLY_MODE
+  // Opens a glfw window to run OpenGL in a context.
+  glfwInit();
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+  glfwWindowHint(GLFW_SAMPLES, 4);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+  GLFWwindow* window = glfwCreateWindow(600, 400, "Test", NULL, NULL);
+  glfwMakeContextCurrent(window);
+  if (window == NULL)
+  {
+    std::cerr << "Failed to create GLFW window" << std::endl;
+    glfwTerminate();
+    return 1;
+  }
+  glewExperimental = GL_TRUE;
+  if (glewInit() != GLEW_OK)
+  {
+    std::cerr << "Failed to initialize GLEW" << std::endl;
+    return 1;
+  }
+
+  auto& gpuprocessor = process::GPUProcessor::instance();
+  gpuprocessor->setWindow(window);
+  processor = gpuprocessor;
 #elif ALBEDO_TOOLS_MODE == ALBEDO_TBB_ONLY_MODE
   processor = nothread ? process::cpu::MonoProcessor::instance()
                          : process::cpu::MultiProcessor::instance();
