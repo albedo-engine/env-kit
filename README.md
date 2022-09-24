@@ -1,4 +1,4 @@
-# env-kit
+# env-kit (Deprecated)
 
 This project is aims at generating, from a given map, its BRDF look-up texture, its irradiance map and the prefiltered environment.
 You can use the project as a third-party library, directly integrated in your custom engine / project, or, if you want to use it offline, you can use the generated *albedo-prefilter* binary linked to the library.
